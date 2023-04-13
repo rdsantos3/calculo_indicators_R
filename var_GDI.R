@@ -44,6 +44,6 @@ data_gdi <- data_filt %>%
                                         edad_ci >=61 & edad_ci <= 75 ~ "rango_61_75", 
                                         edad_ci >=76 & edad_ci <= 90 ~ "rango_76_90",
                                         edad_ci>=91 ~ "rango_91_mas")) %>% 
-  select(disability, afroind_ci, ethnicity, recortes_poblacion, ine01, region_BID_c, pais_c, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
+  select(disability, afroind_ci, ethnicity, recortes_poblacion, ine01, region_BID_c, pais_c, ine01, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
          idp_ci)
 }
