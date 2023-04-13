@@ -4,8 +4,8 @@
 
 if (tipo == "censos") {
   data_lmk <- data_filt %>% 
-    mutate(pet = ifelse((condocup_ci == 1 | condocup_ci == 2 | condocup_ci == 3),1,0),
-           pea = ifelse((condocup_ci == 1 | condocup_ci == 2 ),1,0),
+    mutate(pet = ifelse((edad_ci>=15 & edad_ci<65),1,0),
+           pea = ifelse((condocup_ci == 1 | condocup_ci == 2 ) & pet==1,1,0),
            age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, 1, 0), 
            age_25_64_lmk = ifelse(edad_ci>=25 & edad_ci<65, 1, 0), 
            age_65_mas_lmk = ifelse(edad_ci>=65, 1, 0),
@@ -61,6 +61,6 @@ data_lmk <- data_filt %>%
                                  is.na(pension_ci) & edad_ci >=65 ~ 0, 
                                   TRUE ~ NA_real_),
          aux_pensiont_ci=mean(pensiont_ci)) %>% 
-  select(pet:aux_pensiont_ci, region_BID_c, pais_c, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
+  select(pet:aux_pensiont_ci, region_BID_c, pais_c, ine01, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
          idp_ci)
 }
