@@ -1,4 +1,5 @@
 indicator_name,aggregation_function,numerator_condition,denominator_condition,disaggregation
+jefa_ch,pct,jefa_ci==1,jefa_ci==1,"ethnicity,isoalpha3,year"
 tasa_ocupacion,pct,condocup_ci==1,pet==1,"sex,ethnicity,isoalpha3,year"
 pobreza31,pct,poor31==1,!is.na(poor31),"sex,ethnicity,isoalpha3,year"
 pobreza,pct,poor==1,!is.na(poor),"sex,ethnicity,isoalpha3,year"
