@@ -11,7 +11,7 @@ options(scipen = 999)
 
 ### Data ----
 
-base <- "C:/Users/MARIAREY/OneDrive - Inter-American Development Bank Group/Documents/Data Governance - SCL/Censos/clean/PAN/PAN_2010_censusBID.dta"
+base <- "//sdssrv03//surveys//harmonized//BRA//PNADC//data_arm//BRA_2020a_BID.dta"
 
 data <- read_dta(base)
 
@@ -19,15 +19,28 @@ data <- read_dta(base)
 
 # to do poner if encuestas y censos, ahorita está para censos pero la idea es empezar con encuesta
 
-tipo <- "censos"
+tipo <- "encuestas"
 
 #variables necesarias en censos remover el resto
-variables_censos <- readxl::read_xlsx("Inputs/D.7.1.3 Diccionario variables censos.xlsx")
 
-varlist_censos <- variables_censos %>% 
-  filter(!is.na(Variable))
 
-data_filt <- data[,varlist_censos$Variable]
+if(tipo=="censos"){
+  variables_censos <- readxl::read_xlsx("Inputs/D.7.1.3 Diccionario variables censos.xlsx")
+  varlist_censos <- variables_censos %>% 
+    filter(!is.na(Variable))
+  
+  data_filt <- data[,varlist_censos$Variable]
+}else if(tipo=="encuestas"){ 
+  #nota variables de salud no existen en la encuesat de Brasil
+  variables_encuestas <- readxl::read_xlsx("Inputs/D.1.1.4 Diccionario microdatos encuestas de hogares.xlsx")
+  #quito las variables de salud ya que no estan en todos las encuestas aún
+  varlist_encuestas <- variables_encuestas %>%
+    filter((Tematica!="Salud")&!is.na(Variable))
+  data_filt <- data[,varlist_encuestas$Variable]
+}
+
+
+
 
 #### Data intermedia  ####
 
@@ -40,39 +53,57 @@ source("var_GDI.R")
 # esto corre muy lento hay que hacerlo más eficiente
 source("var_SOC.R")
 
+
+# function para detectar variables de muestreo y convertir en survey design objetct
+intoSurveyDesignObject <- function(.data) {
+  if (!all(is.na(.data$upm_ci)) & !all(is.na(.data$estrato_ci)) ) {
+    .data<- .data %>%
+      as_survey_design(upm_ci, strata = estrato_ci, weight = factor_ch, nest = TRUE)
+  } else if( !all(is.na(.data$upm_ci)) & !all(is.na(.data$estrato_ci)) ){
+    .data<- .data %>%
+      as_survey_design(upm_ci, weight = factor_ch, nest = TRUE)
+  }
+  else{ 
+    .data<- .data %>%
+      as_survey_design(weight = factor_ch, nest = TRUE)
+  }
+  return(.data)
+}
+
 #### Juntar bases con variables intermedias #####
 
 if (tipo == "censos") {
-
-data_scl <- data_filt %>%  
-  select(-c(afroind_ci)) %>% 
-  left_join(data_lmk, by = c("region_BID_c", "pais_c","geolev1",  "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  left_join(data_edu, by = c("region_BID_c", "pais_c", "geolev1", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>%
-  left_join(data_soc, by = c("region_BID_c", "pais_c", "geolev1", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  left_join(data_gdi, by = c("region_BID_c", "pais_c", "geolev1","estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  rename(year = anio_c, isoalpha3 = pais_c)
-
+  
+  data_scl <- data_filt %>%  
+    select(-c(afroind_ci)) %>% 
+    left_join(data_lmk, by = c("region_BID_c", "pais_c","geolev1",  "estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+    left_join(data_edu, by = c("region_BID_c", "pais_c", "geolev1", "estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>%
+    left_join(data_soc, by = c("region_BID_c", "pais_c", "geolev1", "estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+    left_join(data_gdi, by = c("region_BID_c", "pais_c", "geolev1","estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+    rename(year = anio_c, isoalpha3 = pais_c)
+  
 }
 
 if (tipo == "encuestas") {
-
-data_scl <- data_filt %>%  
-  select(-c(afroind_ci)) %>% 
-  left_join(data_lmk, by = c("region_BID_c", "pais_c","ine01",  "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  left_join(data_edu, by = c("region_BID_c", "pais_c","ine01", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>%
-  left_join(data_soc, by = c("region_BID_c", "pais_c","ine01", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  left_join(data_gdi, by = c("region_BID_c", "pais_c", "ine01","estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) 
-  left_join(base_geo, by = c("ine01" = "ine01", "pais_c" = "pais")) %>% 
-    rename(year = anio_c, isoalpha3 = pais_c)
   
+  data_scl <- data_filt %>%  
+    select(-c(afroind_ci)) %>% 
+    left_join(data_lmk, by = c("region_BID_c", "pais_c","ine01",  "estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+    left_join(data_edu, by = c("region_BID_c", "pais_c","ine01", "estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>%
+    left_join(data_soc, by = c("region_BID_c", "pais_c","ine01", "estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+    left_join(data_gdi, by = c("region_BID_c", "pais_c", "ine01","estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>%
+    rename(year = anio_c, isoalpha3 = pais_c)
+  #left_join(base_geo, by = c("ine01" = "ine01", "pais_c" = "pais")) %>% #
+  
+  data_scl<-   intoSurveyDesignObject(data_scl)
 }
 
 #### Quitar las bases que no necesitamos y liberar espacio ####
@@ -99,22 +130,26 @@ scl_pct <- function(.data, .nombre, .condicion1, .condicion2, .group_vars) {
   if (!is.null(.group_vars)) {
     data_aux <- .data %>%
       dplyr::group_by_at(.group_vars) %>%
-      dplyr::summarise(
-        value = sum(factor_ci[!!.condicion1], na.rm=TRUE) / sum(factor_ci[!!.condicion2], na.rm=TRUE),
-        indicator = .nombre,
-        se = sqrt(stats::var(!!.condicion1, na.rm = TRUE)),
-        cv = se * 100 / (sum(value * factor_ci) * 100 / sum(factor_ci)),
-        sample = length(na.omit(!!.condicion2))
-      ) %>% 
+      dplyr::summarize(proportion = survey_ratio(eval(.condicion1), eval(.condicion2),vartype = c("cv","se"),na.rm=TRUE),
+                       indicator = .nombre,
+                       n =sum(eval(.condicion2))) %>%
+      rename(
+        value = proportion,
+        cv = proportion_cv,
+        se = proportion_se,
+        sample = n
+      )%>% 
       dplyr::ungroup()
   } else {
     data_aux <- .data %>%
-      dplyr::summarise(
-        value = sum(factor_ci[!!.condicion1], na.rm=TRUE) / sum(factor_ci[!!.condicion2], na.rm=TRUE),
-        indicator = .nombre,
-        se = sqrt(stats::var(!!.condicion1, na.rm = TRUE)),
-        cv = se * 100 / (sum(value * factor_ci) * 100 / sum(factor_ci)),
-        sample = length(na.omit(!!.condicion2))
+      dplyr::summarize(proportion = survey_ratio((.condicion1), (.condicion2),vartype = c("cv","se"),na.rm=TRUE),
+                       indicator = .nombre,
+                       n =sum((.condicion2))) %>%
+      rename(
+        value = proportion,
+        cv = proportion_cv,
+        se = proportion_se,
+        sample = n
       )
   }
   
@@ -162,7 +197,7 @@ calculate_indicators <- function(data, indicator_definitions) {
       for (j in 1:nrow(disaggregation_combinations)) {
         current_disaggregation <- as.vector(unlist(disaggregation_combinations[j, ]))
         current_disaggregation <- current_disaggregation[current_disaggregation != "Total"]
-        
+        print(indicator_definitions[i, ])
         res <- scl_pct(data, ind$indicator_name, numerator_condition, denominator_condition, current_disaggregation)
         res_list[[j]] <- res
       }
@@ -183,8 +218,7 @@ calculate_indicators <- function(data, indicator_definitions) {
 
 # i need year and geolev as character
 data_scl <- data_scl %>% 
-  mutate(year = as.character(year), 
-         geolev1 = as.character(geolev1))
+  mutate(year = as.character(year))#, geolev1 = as.character(geolev1))
 
 # read the indicators definitions in the csv
 indicator_definitions <- read.csv("Inputs/idef.csv")
