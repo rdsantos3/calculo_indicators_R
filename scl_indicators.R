@@ -7,11 +7,13 @@
 library(tidyverse)
 library(haven)
 library(srvyr)
+library(readxl)
+library("writexl")
 options(scipen = 999)
 
 ### Data ----
 
-base <- "C:/Users/MARIAREY/OneDrive - Inter-American Development Bank Group/Documents/Data Governance - SCL/Censos/clean/PAN/PAN_2010_censusBID.dta"
+base <- "//sdssrv03//surveys//harmonized//BRA//PNADC//data_arm//BRA_2020a_BID.dta"
 
 data <- read_dta(base)
 
@@ -19,8 +21,9 @@ data <- read_dta(base)
 
 # to do poner if encuestas y censos, ahorita está para censos pero la idea es empezar con encuesta
 
-tipo <- "censos"
+tipo <- "encuestas"
 
+if (tipo == "censos") {
 #variables necesarias en censos remover el resto
 variables_censos <- readxl::read_xlsx("Inputs/D.7.1.3 Diccionario variables censos.xlsx")
 
@@ -28,6 +31,17 @@ varlist_censos <- variables_censos %>%
   filter(!is.na(Variable))
 
 data_filt <- data[,varlist_censos$Variable]
+}
+
+if (tipo == "encuestas") {
+#variables necesarias en censos remover el resto
+variables_encuestas <- readxl::read_xlsx("Inputs/D.1.1.4 Diccionario microdatos encuestas de hogares.xlsx")
+
+variables_encuestas <- variables_encuestas %>% 
+  filter(!is.na(Variable))
+
+data_filt <- data[,variables_encuestas$Variable]
+}
 
 #### Data intermedia  ####
 
@@ -44,6 +58,7 @@ source("var_SOC.R")
 
 if (tipo == "censos") {
 
+  
 data_scl <- data_filt %>%  
   select(-c(afroind_ci)) %>% 
   left_join(data_lmk, by = c("region_BID_c", "pais_c","geolev1",  "estrato_ci", "zona_c",
@@ -60,17 +75,18 @@ data_scl <- data_filt %>%
 
 if (tipo == "encuestas") {
 
+  
 data_scl <- data_filt %>%  
   select(-c(afroind_ci)) %>% 
-  left_join(data_lmk, by = c("region_BID_c", "pais_c","ine01",  "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  left_join(data_edu, by = c("region_BID_c", "pais_c","ine01", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>%
-  left_join(data_soc, by = c("region_BID_c", "pais_c","ine01", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+  left_join(data_lmk, by = c("region_BID_c", "pais_c","estrato_ci", "zona_c",
+                             "relacion_ci", "idh_ch", "idp_ci", "factor_ci")) %>% 
+  left_join(data_edu, by = c("region_BID_c", "pais_c","estrato_ci", "zona_c",
+                             "relacion_ci", "idh_ch", "idp_ci", "factor_ci")) %>%
+  left_join(data_soc, by = c("region_BID_c", "pais_c", "estrato_ci", "zona_c",
+                             "relacion_ci", "idh_ch","idp_ci", "factor_ci")) %>% 
   left_join(data_gdi, by = c("region_BID_c", "pais_c", "ine01","estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) 
-  left_join(base_geo, by = c("ine01" = "ine01", "pais_c" = "pais")) %>% 
+                             "relacion_ci", "idh_ch", "idp_ci", "factor_ci")) %>% 
+#  left_join(base_geo, by = c("ine01" = "ine01", "pais_c" = "pais")) %>% 
     rename(year = anio_c, isoalpha3 = pais_c)
   
 }
@@ -88,6 +104,19 @@ gc()
 # 1. incluir distintas desagregaciones forma más eficiente.
 # 2. Incluir variables de calidad coeficiente de variación, N, var.
 # 3. Incluir la parte de condiciones (ya quedo para poner condiciones, ahora faltaría incorporar el excel que controle las condiciones).
+
+# function to restrict combinations
+evaluatingFilter <- function(x, variable) {
+  result<-FALSE
+  for(condicionExcluyente in variable) {
+    if(sum(unlist(condicionExcluyente) %in% x)>1){
+      result<-(TRUE)}
+    else{
+      next
+    }
+  }
+  return(result)
+}
 
 # function to calculate pct with conditions. 
 
@@ -145,6 +174,7 @@ calculate_indicators <- function(data, indicator_definitions) {
     numerator_condition <- ind$numerator_condition
     denominator_condition <- ind$denominator_condition
     disaggregation <- strsplit(ind$disaggregation, ",")[[1]]
+    excludeDisaggregation <- strsplit(strsplit(ind$excludeDisaggregation," ")[[1]],",")
     
     if (aggregation_function == "pct") {
       res_list <- list()
@@ -162,9 +192,11 @@ calculate_indicators <- function(data, indicator_definitions) {
       for (j in 1:nrow(disaggregation_combinations)) {
         current_disaggregation <- as.vector(unlist(disaggregation_combinations[j, ]))
         current_disaggregation <- current_disaggregation[current_disaggregation != "Total"]
-        
+        conditionDesaggregation <-evaluatingFilter(as.vector(t(current_disaggregation)),excludeDisaggregation)
+#        if(!conditionDesaggregation) {
         res <- scl_pct(data, ind$indicator_name, numerator_condition, denominator_condition, current_disaggregation)
         res_list[[j]] <- res
+#       }
       }
       
       # Combine all disaggregated and total results
@@ -183,13 +215,11 @@ calculate_indicators <- function(data, indicator_definitions) {
 
 # i need year and geolev as character
 data_scl <- data_scl %>% 
-  mutate(year = as.character(year), 
-         geolev1 = as.character(geolev1))
+  mutate(year = as.character(year))#, 
+         #geolev1 = as.character(geolev1))
 
 # read the indicators definitions in the csv
-indicator_definitions <- read.csv("Inputs/idef.csv")
+indicator_definitions <- read_excel("Inputs/idef.xlsx")
 
 # use the function to compute indicators
 data_total <- calculate_indicators(data_scl, indicator_definitions = indicator_definitions)
-
-
