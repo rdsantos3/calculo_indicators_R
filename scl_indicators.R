@@ -110,7 +110,7 @@ gc()
 evaluatingFilter <- function(x, variable) {
   result<-FALSE
   for(condicionExcluyente in variable) {
-    if(sum(unlist(condicionExcluyente) %in% x)>1){
+    if(sum(unlist(condicionExcluyente) %in% x)==length(condicionExcluyente)){
       result<-(TRUE)}
     else{
       next
@@ -194,10 +194,10 @@ calculate_indicators <- function(data, indicator_definitions) {
         current_disaggregation <- as.vector(unlist(disaggregation_combinations[j, ]))
         current_disaggregation <- current_disaggregation[current_disaggregation != "Total"]
         conditionDesaggregation <-evaluatingFilter(as.vector(t(current_disaggregation)),excludeDisaggregation)
-#        if(!conditionDesaggregation) {
+        if(!conditionDesaggregation) {
         res <- scl_pct(data, ind$indicator_name, numerator_condition, denominator_condition, current_disaggregation)
         res_list[[j]] <- res
-#       }
+       }
       }
       
       # Combine all disaggregated and total results
