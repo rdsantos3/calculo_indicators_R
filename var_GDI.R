@@ -19,8 +19,10 @@ if (tipo == "censos") {
                                           edad_ci >=46 & edad_ci <= 60 ~ "rango_46_60", 
                                           edad_ci >=61 & edad_ci <= 75 ~ "rango_61_75", 
                                           edad_ci >=76 & edad_ci <= 90 ~ "rango_76_90",
-                                          edad_ci>=91 ~ "rango_91_mas")) %>% 
-    select(disability, ethnicity, afroind_ci, recortes_poblacion, geolev1, region_BID_c, pais_c, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
+                                          edad_ci>=91 ~ "rango_91_mas"), 
+           migration = ifelse(migrante_ci == 1, "Migrant", 
+                              ifelse(migrante_ci == 0, "Non-migrant", NA_character_))) %>% 
+    select(disability, ethnicity, afroind_ci, migration, recortes_poblacion, geolev1, region_BID_c, pais_c, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
            idp_ci)
 }
 
@@ -43,7 +45,9 @@ data_gdi <- data_filt %>%
                                         edad_ci >=46 & edad_ci <= 60 ~ "rango_46_60", 
                                         edad_ci >=61 & edad_ci <= 75 ~ "rango_61_75", 
                                         edad_ci >=76 & edad_ci <= 90 ~ "rango_76_90",
-                                        edad_ci>=91 ~ "rango_91_mas")) %>% 
-  select(disability, afroind_ci, ethnicity, recortes_poblacion, ine01, region_BID_c, pais_c, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
+                                        edad_ci>=91 ~ "rango_91_mas"),
+         migration = ifelse(migrante_ci == 1, "Migrant", 
+                            ifelse(migrante_ci == 0, "Non-migrant", NA_character_))) %>%  
+  select(disability, afroind_ci, ethnicity, migration, recortes_poblacion, ine01, region_BID_c, pais_c, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
          idp_ci)
 }
