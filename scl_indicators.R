@@ -3,7 +3,7 @@
 ##### Ejemplo para calcular indicadores 
 
 ##### Preliminares -----
-
+start.time <- Sys.time()
 library(tidyverse)
 library(haven)
 library(srvyr)
@@ -11,7 +11,7 @@ options(scipen = 999)
 
 ### Data ----
 
-base <- "//sdssrv03//surveys//harmonized//BRA//PNADC//data_arm//BRA_2020a_BID.dta"
+base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2020a_BID.dta"
 
 data <- read_dta(base)
 
@@ -226,4 +226,6 @@ indicator_definitions <- read.csv("Inputs/idef.csv")
 # use the function to compute indicators
 data_total <- calculate_indicators(data_scl, indicator_definitions = indicator_definitions)
 
-
+end.time <- Sys.time()
+time.taken <- round(end.time - start.time,2)
+time.taken
