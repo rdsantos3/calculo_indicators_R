@@ -4,6 +4,7 @@
 
 ##### Preliminares -----
 
+
 library(tidyverse)
 library(haven)
 library(srvyr)
@@ -13,7 +14,7 @@ options(scipen = 999)
 
 ### Data ----
 
-base <- "//sdssrv03//surveys//harmonized//BRA//PNADC//data_arm//BRA_2020a_BID.dta"
+base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2020a_BID.dta"
 
 data <- read_dta(base)
 
