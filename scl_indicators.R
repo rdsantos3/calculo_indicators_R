@@ -4,6 +4,7 @@
 
 ##### Libraries -----
 
+
 library(tidyverse)
 library(haven)
 library(srvyr)
@@ -15,7 +16,9 @@ options(scipen = 999)
 
 # to do make it generalized so that you only have to specity country, type and year.
 # Path of the data
-base <- "//sdssrv03//surveys//harmonized//BRA//PNADC//data_arm//BRA_2021a_BID.dta"
+
+
+base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2020a_BID.dta"
 
 # Read data
 data <- read_dta(base)
@@ -115,13 +118,15 @@ evaluatingFilter <- function(x, variable) {
   
   # Iterate over each element in variable
   for(condicionExcluyente in variable) {
-    
+
     # If more than one element of 'condicionExcluyente' is found in 'x'
     # The 'unlist' function is used to flatten 'condicionExcluyente' into a vector
     # The '%in%' operator is used to find matching elements in 'x'
     # The 'sum' function counts the number of TRUEs (matches found)
-    if(sum(unlist(condicionExcluyente) %in% x)>1){
-      # If condition is met, set result to TRUE
+    
+    # If condition is met, set result to TRUE
+
+    if(sum(unlist(condicionExcluyente) %in% x)==length(condicionExcluyente)){
       result<-(TRUE)}
     else{
       # If condition is not met, continue with the next iteration of the loop
@@ -212,7 +217,7 @@ calculate_indicators <- function(data, indicator_definitions) {
         
         current_disaggregation <- as.vector(unlist(disaggregation_combinations[j, ]))
         current_disaggregation <- current_disaggregation[current_disaggregation != "Total"]
-        
+
         # Evaluate exclusion condition
         conditionDesaggregation <- evaluatingFilter(as.vector(t(current_disaggregation)),excludeDisaggregation)
         # If the condition for exclusion is not met, calculate the indicator
@@ -220,6 +225,7 @@ calculate_indicators <- function(data, indicator_definitions) {
         res <- scl_pct(data, ind$indicator_name, numerator_condition, denominator_condition, current_disaggregation)
         res_list[[j]] <- res
          }
+
       }
       
       # Combine all disaggregated and total results
