@@ -2,34 +2,54 @@
 
 ##### Ejemplo para calcular indicadores 
 
-##### Preliminares -----
+##### Libraries -----
+
 
 library(tidyverse)
 library(haven)
 library(srvyr)
+library(readxl)
+library("writexl")
 options(scipen = 999)
 
 ### Data ----
 
-base <- "C:/Users/MARIAREY/OneDrive - Inter-American Development Bank Group/Documents/Data Governance - SCL/Censos/clean/PAN/PAN_2010_censusBID.dta"
+# to do make it generalized so that you only have to specity country, type and year.
+# Path of the data
 
+
+base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2020a_BID.dta"
+
+# Read data
 data <- read_dta(base)
 
-# definir tipo 
+#Define type
 
-# to do poner if encuestas y censos, ahorita está para censos pero la idea es empezar con encuesta
+tipo <- "encuestas"
 
-tipo <- "censos"
-
-#variables necesarias en censos remover el resto
+if (tipo == "censos") {
+#Keep only needed variables
 variables_censos <- readxl::read_xlsx("Inputs/D.7.1.3 Diccionario variables censos.xlsx")
 
 varlist_censos <- variables_censos %>% 
   filter(!is.na(Variable))
 
 data_filt <- data[,varlist_censos$Variable]
+}
 
-#### Data intermedia  ####
+if (tipo == "encuestas") {
+  # to do si no encuentra las variables ponlas en missing
+  
+#Keep only needed variables
+variables_encuestas <- readxl::read_xlsx("Inputs/D.1.1.4 Diccionario microdatos encuestas de hogares.xlsx")
+
+variables_encuestas <- variables_encuestas %>% 
+  filter(!is.na(Variable))
+
+data_filt <- data[,variables_encuestas$Variable]
+}
+
+#### Compute intermediate variables  ####
 
 source("var_LMK.R")
 
@@ -37,13 +57,13 @@ source("var_EDU.R")
 
 source("var_GDI.R")
 
-# esto corre muy lento hay que hacerlo más eficiente
 source("var_SOC.R")
 
-#### Juntar bases con variables intermedias #####
+#### Join final data with intermediate variables #####
 
 if (tipo == "censos") {
 
+  
 data_scl <- data_filt %>%  
   select(-c(afroind_ci)) %>% 
   left_join(data_lmk, by = c("region_BID_c", "pais_c","geolev1",  "estrato_ci", "zona_c",
@@ -60,24 +80,24 @@ data_scl <- data_filt %>%
 
 if (tipo == "encuestas") {
 
+
+  
 data_scl <- data_filt %>%  
   select(-c(afroind_ci)) %>% 
-  left_join(data_lmk, by = c("region_BID_c", "pais_c","ine01",  "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  left_join(data_edu, by = c("region_BID_c", "pais_c","ine01", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>%
-  left_join(data_soc, by = c("region_BID_c", "pais_c","ine01", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+  left_join(data_lmk, by = c("region_BID_c", "pais_c","estrato_ci", "zona_c",
+                             "relacion_ci", "idh_ch", "idp_ci", "factor_ci")) %>% 
+  left_join(data_edu, by = c("region_BID_c", "pais_c","estrato_ci", "zona_c",
+                             "relacion_ci", "idh_ch", "idp_ci", "factor_ci")) %>%
+  left_join(data_soc, by = c("region_BID_c", "pais_c", "estrato_ci", "zona_c",
+                             "relacion_ci", "idh_ch","idp_ci", "factor_ci")) %>% 
   left_join(data_gdi, by = c("region_BID_c", "pais_c", "ine01","estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) 
-  left_join(base_geo, by = c("ine01" = "ine01", "pais_c" = "pais")) %>% 
+                             "relacion_ci", "idh_ch", "idp_ci", "factor_ci")) %>% 
+#  left_join(base_geo, by = c("ine01" = "ine01", "pais_c" = "pais")) %>% 
     rename(year = anio_c, isoalpha3 = pais_c)
   
 }
 
-#### Quitar las bases que no necesitamos y liberar espacio ####
-
-# Quitar bases de datos innecesarias y liberar espacio
+# Remove data we do not need and free memory
 rm("data_lmk", "data_edu", "data_soc", "data_gdi", "data", "data_filt")
 gc()
 
@@ -88,11 +108,39 @@ gc()
 # 1. incluir distintas desagregaciones forma más eficiente.
 # 2. Incluir variables de calidad coeficiente de variación, N, var.
 # 3. Incluir la parte de condiciones (ya quedo para poner condiciones, ahora faltaría incorporar el excel que controle las condiciones).
+# 4. Agregar variables de calidad 
+# 5. Si es posible y no toma mucho tiempo en correr agregar componente de survey
+
+# function to restrict combinations
+evaluatingFilter <- function(x, variable) {
+  # Initialize result as FALSE. It will be set to TRUE if the conditions are met.
+  result<-FALSE
+  
+  # Iterate over each element in variable
+  for(condicionExcluyente in variable) {
+
+    # If more than one element of 'condicionExcluyente' is found in 'x'
+    # The 'unlist' function is used to flatten 'condicionExcluyente' into a vector
+    # The '%in%' operator is used to find matching elements in 'x'
+    # The 'sum' function counts the number of TRUEs (matches found)
+    
+    # If condition is met, set result to TRUE
+
+    if(sum(unlist(condicionExcluyente) %in% x)==length(condicionExcluyente)){
+      result<-(TRUE)}
+    else{
+      # If condition is not met, continue with the next iteration of the loop
+      next
+    }
+  }
+  return(result)
+}
 
 # function to calculate pct with conditions. 
 
 scl_pct <- function(.data, .nombre, .condicion1, .condicion2, .group_vars) {
   
+  # Convert conditions to expressions
   .condicion1 <- rlang::parse_expr(.condicion1)
   .condicion2 <- rlang::parse_expr(.condicion2)
   
@@ -119,8 +167,7 @@ scl_pct <- function(.data, .nombre, .condicion1, .condicion2, .group_vars) {
   }
   
   # Add disaggregation columns if not already present
-  # to do: here the geolev and year are treated as one disagregation
-  for (disaggregation_col in c("sex", "education_level", "disability", "quintile", "ethnicity", "age", "area", "year", "isoalpha3", "geolev1")) {
+  for (disaggregation_col in c("sex", "education_level", "disability", "quintile", "ethnicity", "migration", "age", "area", "year", "isoalpha3", "geolev1")) {
     if (!(disaggregation_col %in% colnames(data_aux))) {
       data_aux[[disaggregation_col]] <- "Total"
     }
@@ -128,23 +175,29 @@ scl_pct <- function(.data, .nombre, .condicion1, .condicion2, .group_vars) {
   
   # Rearrange columns
   data_aux <- data_aux %>% 
-    dplyr::select(isoalpha3, year, geolev1, indicator, sex, education_level, disability, quintile, ethnicity, age, area,
+    dplyr::select(isoalpha3, year, geolev1, indicator, sex, education_level, disability, quintile, ethnicity, migration, age, area,
                   value, se, cv, sample)
   
   return(data_aux)
 }
 
 
-# function to use csv and create dataframe
+# Function to use csv and create dataframe
 calculate_indicators <- function(data, indicator_definitions) {
+  
+  # Initialize a list to store results
   results <- list()
   
+  # Iterate over each row (indicator) in indicator_definitions
   for (i in 1:nrow(indicator_definitions)) {
+    
+    # Extract each component of the current indicator definition
     ind <- indicator_definitions[i, ]
     aggregation_function <- ind$aggregation_function
     numerator_condition <- ind$numerator_condition
     denominator_condition <- ind$denominator_condition
     disaggregation <- strsplit(ind$disaggregation, ",")[[1]]
+    excludeDisaggregation <- strsplit(strsplit(ind$excludeDisaggregation," ")[[1]],",")
     
     if (aggregation_function == "pct") {
       res_list <- list()
@@ -159,12 +212,20 @@ calculate_indicators <- function(data, indicator_definitions) {
       }))
       disaggregation_combinations <- unique(disaggregation_combinations) # Remove duplicates
       
+      # Iterate over each disaggregation combination
       for (j in 1:nrow(disaggregation_combinations)) {
+        
         current_disaggregation <- as.vector(unlist(disaggregation_combinations[j, ]))
         current_disaggregation <- current_disaggregation[current_disaggregation != "Total"]
-        
+
+        # Evaluate exclusion condition
+        conditionDesaggregation <- evaluatingFilter(as.vector(t(current_disaggregation)),excludeDisaggregation)
+        # If the condition for exclusion is not met, calculate the indicator
+        if(!conditionDesaggregation) {
         res <- scl_pct(data, ind$indicator_name, numerator_condition, denominator_condition, current_disaggregation)
         res_list[[j]] <- res
+         }
+
       }
       
       # Combine all disaggregated and total results
@@ -181,15 +242,13 @@ calculate_indicators <- function(data, indicator_definitions) {
 }
 
 
-# i need year and geolev as character
+# Convert year and geolev as character
 data_scl <- data_scl %>% 
-  mutate(year = as.character(year), 
-         geolev1 = as.character(geolev1))
+  mutate(year = as.character(year))#, 
+         #geolev1 = as.character(geolev1))
 
 # read the indicators definitions in the csv
 indicator_definitions <- read.csv("Inputs/idef.csv")
 
 # use the function to compute indicators
 data_total <- calculate_indicators(data_scl, indicator_definitions = indicator_definitions)
-
-
