@@ -2,3 +2,11 @@
 tasa_ocupacion,pct,condocup_ci==1,pet==1,"sex,ethnicity,area,isoalpha3,year","ethnicity,disability migration,disability migration,area ethnicity,migration"
 pobreza31,pct,poor31==1,!is.na(poor31),"sex,ethnicity,area,migration,isoalpha3,year","ethnicity,disability,migration"
 pobreza,pct,poor==1,!is.na(poor),"sex,ethnicity,area,isoalpha3,year","ethnicity,disability,migration,area"
+vulnerable,pct,vulnerable ==1,!is.na(vulnerable),"sex,ethnicity,area,isoalpha3,year",
+middle,pct,middle==1,!is.na(middle),"sex,ethnicity,area,isoalpha3,year",
+rich,pct,rich==1,!is.na(rich),"sex,ethnicity,area,isoalpha3,year",
+pobreza31P,pct,"income_category==""extreme""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",
+pobrezaP,pct,"income_category==""poverty""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",
+vulnerableP,pct,"income_category==""vulnerable""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",
+middleP,pct,"income_category==""middle""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",
+richP,pct,"income_category==""rich""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",

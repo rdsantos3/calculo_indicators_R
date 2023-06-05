@@ -18,7 +18,7 @@ options(scipen = 999)
 # Path of the data
 
 
-base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2020a_BID.dta"
+base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2022a_BID.dta"
 
 # Read data
 data <- read_dta(base)
