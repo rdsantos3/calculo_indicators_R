@@ -32,9 +32,8 @@ if (tipo == "censos") {
            ytot_ch = pmax(0, ytot_ch),
            hhyallsr = ifelse(single_member, sum(yallsr18,na.rm=TRUE), NA),
            hhyallsr = pmax(0, hhyallsr),
-           ywomen = sum(yallsr18[is_woman], na.rm = TRUE),
-           ywomen = ifelse(is.na(yallsr18), NA, ywomen),
-           hhywomen = ifelse(ywomen>0, ywomen/hhyallsr, 0),  
+           ywomen = sum(yallsr18[sexo_ci == 2], na.rm = TRUE),
+           hhywomen = max(ywomen, na.rm = TRUE),
            jefa_ch = ifelse(jefe_ci==1, sum(jefa_ci),0)) %>%
     ungroup() %>%
     mutate(
@@ -64,7 +63,11 @@ if (tipo == "censos") {
 
 if (tipo == "encuestas") {
   
-  data_soc <- data_filt %>%
+  # creating a vector with initial column names
+  initial_column_names <- names(data)
+  
+  
+  data_soc <- data %>%
     # create principal variables
     mutate(jefa_ci = case_when(jefe_ci==1 & sexo_ci==2 ~ 1, 
                                jefe_ci==1 & sexo_ci==1 ~ 0, 
@@ -85,8 +88,7 @@ if (tipo == "encuestas") {
            pob65_ci = case_when(edad_ci>=65 ~ 1, 
                                 is.na(edad_ci) ~ NA_real_, 
                                 TRUE ~ 0), 
-           single_member = miembros_ci == 1,
-           is_woman = sexo_ci == 2) %>%
+           single_member = miembros_ci == 1) %>%
     # Replace rowwise and ifelse operations with vectorized alternatives
     mutate(ytot_ci = pmax(0, rowSums(cbind(ylm_ci, ynlm_ci), na.rm = TRUE)),
            yallsr18 = ifelse(edad_ci >= 18, ytot_ci, NA)) %>%
@@ -98,21 +100,35 @@ if (tipo == "encuestas") {
       ytot_ch = pmax(0, ytot_ch),
       hhyallsr = ifelse(single_member, sum(yallsr18, na.rm = TRUE), NA),
       hhyallsr = pmax(0, hhyallsr),
-      ywomen = sum(yallsr18[is_woman], na.rm = TRUE),
-      ywomen = ifelse(is.na(yallsr18), NA, ywomen),
-      hhywomen = ifelse(ywomen > 0, ywomen / hhyallsr, 0),
-      jefa_ch = ifelse(jefe_ci == 1, sum(jefa_ci), 0)
+      ywomen = sum(yallsr18[sexo_ci == 2], na.rm = TRUE),
+      hhywomen = max(ywomen, na.rm = TRUE),
+      jefa_ch = ifelse(jefe_ci == 1, sum(jefa_ci, na.rm = TRUE), 0)
     ) %>%
     ungroup() %>% 
     # Mutate to compute additional variables
     mutate(
+      
       # Income per capita definition 
       pc_ytot_ch = ifelse(nmiembros_ch > 0, ytot_ch / nmiembros_ch, NA),
       pc_ytot_ch = ifelse(pc_ytot_ch <= 0, NA, pc_ytot_ch),
-      # International poverty
-      poor = ifelse(pc_ytot_ch < lp5_ci, 1, ifelse(pc_ytot_ch >= lp5_ci & !is.na(pc_ytot_ch), 0, NA)), 
-      poor31 = ifelse(pc_ytot_ch < lp31_ci, 1, ifelse(pc_ytot_ch >= lp31_ci & !is.na(pc_ytot_ch), 0, NA)), 
-      # Define area and sex based on zona_c and sexo_ci respectively
+      # extreme poverty 3.1
+      poor31 = ifelse(!is.na(pc_ytot_ch) & pc_ytot_ch < lp31_ci, 1, 0),
+      # poverty 5.0
+      poor = ifelse(!is.na(pc_ytot_ch) & pc_ytot_ch < lp5_ci, 1, 0),
+      # vulnerable 5 y 12.4 usd per capita por día
+      vulnerable = ifelse(!is.na(pc_ytot_ch) & pc_ytot_ch >= lp5_ci & pc_ytot_ch < lp31_ci*4, 1, 0),
+      # middle $12.4 y $62 per capita por día
+      middle = ifelse(!is.na(pc_ytot_ch) & pc_ytot_ch >= lp31_ci*4 & pc_ytot_ch < lp31_ci*20, 1, 0),
+      # rich more than 62 USD per capita por día
+      rich = ifelse(!is.na(pc_ytot_ch) & pc_ytot_ch >= lp31_ci*20, 1, 0),
+      # Define area and sex based on zona_c and sexo_ci respectively, 
+      income_category = case_when(
+        (pc_ytot_ch < lp31_ci ~ "extreme"),  # extreme poverty
+        (pc_ytot_ch >= lp31_ci) & (pc_ytot_ch < lp5_ci) ~ "poverty",  # poverty
+        (pc_ytot_ch >= lp5_ci) & (pc_ytot_ch < lp31_ci*4) ~ "vulnerable",  # vulnerable
+        (pc_ytot_ch >= lp31_ci*4) & (pc_ytot_ch < lp31_ci*20) ~ "middle",  # middle class
+        (pc_ytot_ch >= lp31_ci*20) ~ "rich", 
+        TRUE ~ NA_character_),  # rich,
       area = case_when(
         zona_c == 1 ~ "urban", 
         zona_c == 0 ~ "rural", 
@@ -124,12 +140,27 @@ if (tipo == "encuestas") {
         TRUE ~ NA_character_
       ),
       # Calculate hhfem_ch
-      hhfem_ch = ifelse(hhywomen >= .5, 1, ifelse(is.na(yallsr18), NA, 0))
-    ) %>%
-    # Select required columns
-    select(
-      jefa_ci:hhfem_ch, region_BID_c, pais_c, ine01, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, idp_ci
-    )
+      hhfem_ch = ifelse(hhywomen >= .5, 1, ifelse(is.na(yallsr18), NA, 0)),
+      # remesas
+      indexrem = ifelse(jefe_ci == 1 & !is.na(remesas_ch) & remesas_ch > 0, 1, NA),
+      ylmprixh = ylmpri_ci / (horaspri_ci * 4.34),
+      #vivienda 
+      hacinamiento_ch = nmiembros_ch / cuartos_ch,
+      estable_ch = ifelse(viviprop_ch <= 2, 1, NA),
+      dirtf_ch = ifelse(piso_ch == 0, 1, NA),
+      techonp_ch = ifelse(techo_ch == 0, 1, NA),
+      parednp_ch = ifelse(pared_ch == 0, 1, NA),
+      freezer_ch = ifelse(refrig_ch == 1 | freez_ch == 1, 1, NA)
+    ) 
+  
+  # then select only added variables and specific columns
+  new_column_names <- setdiff(names(data_soc), initial_column_names)
+  
+  select_column_names <- c(new_column_names, 
+                           "region_BID_c", "pais_c", "ine01","estrato_ci","area", "zona_c", "relacion_ci", 
+                           "idh_ch", "factor_ch", "factor_ci", "idp_ci")
+  
+  data_soc <- select(data_soc, all_of(select_column_names))
   
   
 }
