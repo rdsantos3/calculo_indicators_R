@@ -1,4 +1,63 @@
 ﻿indicator_name,aggregation_function,numerator_condition,denominator_condition,disaggregation,excludeDisaggregation
+tamh_ch,mean,nmiembros_ch,jefe_ci==1 & !is.na(nmiembros_ch),"sex,ethnicity,area,isoalpha3,year",
 tasa_ocupacion,pct,condocup_ci==1,pet==1,"sex,ethnicity,area,isoalpha3,year","ethnicity,disability migration,disability migration,area ethnicity,migration"
-pobreza31,pct,poor31==1,!is.na(poor31),"sex,ethnicity,area,migration,isoalpha3,year","ethnicity,disability,migration"
-pobreza,pct,poor==1,!is.na(poor),"sex,ethnicity,area,isoalpha3,year","ethnicity,disability,migration,area"
+pobreza31,pct,"income_category==""extreme""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",
+pobreza,pct,"income_category==""poverty""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",
+vulnerable,pct,"income_category==""vulnerable""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",
+middle,pct,"income_category==""middle""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",
+rich,pct,"income_category==""rich""",!is.na(income_category),"sex,ethnicity,area,isoalpha3,year",
+aguadisp_ch,pct,(aguadisp1_ch==1 | (aguadisp1_ch ==9 & (aguadisp2_ch ==2 | aguadisp2_ch ==3))) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguadispcontinuo_ch,pct,(aguadisp2_ch == 3) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguadispnulo_ch,pct,(aguadisp1_ch == 9) & (aguadisp2_ch == 9) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafcamion_ch,pct,(aguafuente_ch == 6) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafcamioncon_ch,pct,(aguafconsumo_ch == 6) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafconnulo_ch,pct,(aguafconsumo_ch == 0) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafdesconcon_ch,pct,(aguafconsumo_ch == 10) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafdesconocido_ch,pct,(aguafuente_ch == 10) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafembotcon_ch,pct,(aguafconsumo_ch == 3) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafembotellada_ch,pct,(aguafuente_ch == 3) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguaflluvia_ch,pct,(aguafuente_ch == 5) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguaflluviacon_ch,pct,(aguafconsumo_ch == 5) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafmejorada_ch,pct,(aguamejorada_ch == 1) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafmejoradacon_ch,pct,(aguafconsumo_ch >= 1 & aguafconsumo_ch <= 7) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafnmcon_ch,pct,(aguafconsumo_ch == 8 | aguafconsumo_ch == 9)  & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafnomejorada_ch,pct,(aguamala_ch == 1) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafotramej_ch,pct,aguafuente_ch == 7 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafotramejcon_ch,pct,aguafconsumo_ch == 7 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafotranm_ch,pct,(aguafuente_ch == 9) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafotranmcon_ch,pct,aguafconsumo_ch == 9 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafpozoprot_ch,pct,aguafuente_ch == 4 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafpozoprotcon_ch,pct,aguafconsumo_ch == 4 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafpublico_ch,pct,aguafuente_ch == 2 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafpublicocon_ch,pct,aguafconsumo_ch == 2 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafred_ch,pct,aguafuente_ch == 1 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafredcon_ch,pct,aguafconsumo_ch == 1 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafsupercon_ch,pct,aguafconsumo_ch == 8 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguafsuperficial_ch,pct,aguafuente_ch == 8 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguamide_ch,pct,aguamide_ch == 1 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguatrat_ch,pct,aguatrat_ch == 1 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+jmpaguasegura_ch,pct,"aguafuente_ch >= 1 & aguafuente_ch <= 7 & 
+                                 (aguadisp1_ch == 1 | (aguadisp1_ch == 9 & 
+                                                              (aguadisp2_ch == 2 | aguadisp2_ch == 3))) &
+                                 (aguadist_ch == 1 | aguadist_ch == 2) & (jefe_ci==1)",jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+jmpconaguasegura_ch,pct,"(aguafconsumo_ch >= 1 & aguafconsumo_ch <= 7) & 
+                                    (aguadisp1_ch == 1 | (aguadisp1_ch == 9 & 
+                                                                 (aguadisp2_ch == 2 | aguadisp2_ch == 3))) &
+                                    (aguadist_ch == 1 | aguadist_ch == 2)",jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+nosanairelibre_ch,pct,sinbano_ch == 2 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+nosandesc_ch,pct,sinbano_ch == 3 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+nosanvecino_ch,pct,sinbano_ch == 1 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sanambiente,pct,bano_ch == 4 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sandesconocido_ch,pct,bano_ch == 6 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sanexclusivo_ch,pct,banoex_ch == 1 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sanexclusivonulo_ch,pct,banoex_ch == 9 & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sanmejorado_ch,pct,(bano_ch >= 1 & bano_ch <= 3) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sannomejorado_ch,pct,(bano_ch >= 4 & bano_ch <= 5) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sanotramejorado_ch,pct,(bano_ch == 3) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sanotranm_ch,pct,(bano_ch == 5) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sanred_ch,pct,(bano_ch == 1) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sanseptic_ch,pct,(bano_ch == 2) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sinsan_ch,pct,(bano_ch == 0) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+sanambiente_ch,pct,(bano_ch == 4) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+aguared_ch,pct,(aguared_ch == 1) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
+des2_ch,pct,(des2_ch==1) & (jefe_ci==1),jefe_ci==1,"area,ethnicity,migration,isoalpha3,year","disability,migration"
