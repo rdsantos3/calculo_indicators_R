@@ -18,13 +18,13 @@ options(scipen = 999)
 # Path of the data
 
 
-base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2022a_BID.dta"
+base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2021a_BID.dta"
 
 # Read data
 data <- read_dta(base)
 
-#Define type
 
+# define type
 tipo <- "encuestas"
 
 if (tipo == "censos") {
@@ -41,7 +41,8 @@ if (tipo == "encuestas") {
   # to do si no encuentra las variables ponlas en missing
   
 #Keep only needed variables
-variables_encuestas <- readxl::read_xlsx("Inputs/D.1.1.4 Diccionario microdatos encuestas de hogares.xlsx")
+variables_encuestas <- readxl::read_xlsx("Inputs/D.1.1.4 Diccionario microdatos encuestas de hogares.xlsx") %>% 
+  filter(!(Variable %in% c("region_ci", "afroind_ano_ci", "atención_ci")))
 
 variables_encuestas <- variables_encuestas %>% 
   filter(!is.na(Variable))
@@ -58,6 +59,7 @@ source("var_EDU.R")
 source("var_GDI.R")
 
 source("var_SOC.R")
+
 
 #### Join final data with intermediate variables #####
 
@@ -182,73 +184,97 @@ scl_pct <- function(.data, .nombre, .condicion1, .condicion2, .group_vars) {
 }
 
 
-# Function to use csv and create dataframe
-calculate_indicators <- function(data, indicator_definitions) {
+# Function to use CSV and create dataframe
+calculate_indicators <- function(i, data, indicator_definitions) {
   
-  # Initialize a list to store results
-  results <- list()
+  # Extract each component of the current indicator definition
+  ind <- indicator_definitions[i, ]
+  aggregation_function <- ind$aggregation_function
+  numerator_condition <- ind$numerator_condition
+  denominator_condition <- ind$denominator_condition
+  disaggregation <- strsplit(ind$disaggregation, ",")[[1]]
+  excludeDisaggregation <- strsplit(strsplit(ind$excludeDisaggregation," ")[[1]],",")
   
-  # Iterate over each row (indicator) in indicator_definitions
-  for (i in 1:nrow(indicator_definitions)) {
+  # Check aggregation function
+  if (aggregation_function == "pct") {
     
-    # Extract each component of the current indicator definition
-    ind <- indicator_definitions[i, ]
-    aggregation_function <- ind$aggregation_function
-    numerator_condition <- ind$numerator_condition
-    denominator_condition <- ind$denominator_condition
-    disaggregation <- strsplit(ind$disaggregation, ",")[[1]]
-    excludeDisaggregation <- strsplit(strsplit(ind$excludeDisaggregation," ")[[1]],",")
+    # Initialize a list to store results
+    res_list <- list()
     
-    if (aggregation_function == "pct") {
-      res_list <- list()
+    # Generate all possible combinations of disaggregations
+    disaggregation_combinations <- expand.grid(lapply(disaggregation, function(x) {
+      if (x %in% c("year", "isoalpha3")) {
+        return(x)
+      } else {
+        return(c(x, "Total"))
+      }
+    }))
+    disaggregation_combinations <- unique(disaggregation_combinations) # Remove duplicates
+    
+    # Iterate over each disaggregation combination
+    for (j in 1:nrow(disaggregation_combinations)) {
       
-      # Generate all possible combinations of disaggregations
-      disaggregation_combinations <- expand.grid(lapply(disaggregation, function(x) {
-        if (x %in% c("year", "isoalpha3")) {
-          return(x)
-        } else {
-          return(c(x, "Total"))
-        }
-      }))
-      disaggregation_combinations <- unique(disaggregation_combinations) # Remove duplicates
+      current_disaggregation <- as.vector(unlist(disaggregation_combinations[j, ]))
+      current_disaggregation <- current_disaggregation[current_disaggregation != "Total"]
       
-      # Iterate over each disaggregation combination
-      for (j in 1:nrow(disaggregation_combinations)) {
-        
-        current_disaggregation <- as.vector(unlist(disaggregation_combinations[j, ]))
-        current_disaggregation <- current_disaggregation[current_disaggregation != "Total"]
-
-        # Evaluate exclusion condition
-        conditionDesaggregation <- evaluatingFilter(as.vector(t(current_disaggregation)),excludeDisaggregation)
-        # If the condition for exclusion is not met, calculate the indicator
-        if(!conditionDesaggregation) {
+      # Evaluate exclusion condition
+      conditionDesaggregation <- evaluatingFilter(as.vector(t(current_disaggregation)),excludeDisaggregation)
+      
+      # If the condition for exclusion is not met, calculate the indicator
+      if(!conditionDesaggregation) {
         res <- scl_pct(data, ind$indicator_name, numerator_condition, denominator_condition, current_disaggregation)
         res_list[[j]] <- res
-         }
-
       }
-      
-      # Combine all disaggregated and total results
-      res <- do.call(rbind, res_list)
-    } else {
-      # Handle other aggregation functions if needed
     }
     
-    results[[i]] <- res
+    # Combine all disaggregated and total results
+    res <- do.call(rbind, res_list)
+  } else {
+    # Handle other aggregation functions if needed
   }
   
-  final_result <- do.call(rbind, results)
-  return(final_result)
+  return(res)
 }
 
+##### Use parallel programming -----
 
-# Convert year and geolev as character
-data_scl <- data_scl %>% 
-  mutate(year = as.character(year))#, 
-         #geolev1 = as.character(geolev1))
+num_cores <- detectCores() - 1  # number of cores to use, often set to one less than the total available
+cl <- makeCluster(num_cores)
 
-# read the indicators definitions in the csv
-indicator_definitions <- read.csv("Inputs/idef.csv")
+# Export data, indicator definitions and the necessary functions to the cluster
+clusterExport(cl, c("data_scl", "indicator_definitions", "scl_pct", "calculate_indicators", "evaluatingFilter"))
 
-# use the function to compute indicators
-data_total <- calculate_indicators(data_scl, indicator_definitions = indicator_definitions)
+# Load necessary packages on each node of the cluster
+clusterEvalQ(cl, {
+  library(magrittr)
+  library(dplyr)
+  library(rlang)
+})
+
+is_haven_labelled <- function(x) {
+  inherits(x, "haven_labelled")
+}
+
+# Convert all haven_labelled columns to numeric
+data_scl <- data_scl %>%
+  mutate(across(where(is_haven_labelled), as.numeric))
+
+# Call the function in parallel
+results <- parLapply(cl, 1:nrow(indicator_definitions), calculate_indicators, data_scl, indicator_definitions)
+
+# Combine results
+data_total <- do.call(rbind, results)
+
+# Stop the cluster
+stopCluster(cl)
+
+# remove NA 
+
+# disaggregations to remove NA
+# to do add this to the code so that they are removed
+vars_to_check <- c("sex", "disability", "ethnicity")
+
+data_total <- data_total %>%
+  purrr::reduce(vars_to_check, function(data, var) {
+    data %>% dplyr::filter(!is.na(.data[[var]]))
+  }, .init = .)

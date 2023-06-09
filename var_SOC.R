@@ -64,10 +64,10 @@ if (tipo == "censos") {
 if (tipo == "encuestas") {
   
   # creating a vector with initial column names
-  initial_column_names <- names(data)
+  initial_column_names <- names(data_filt)
   
   
-  data_soc <- data %>%
+  data_soc <- data_filt %>%
     # create principal variables
     mutate(jefa_ci = case_when(jefe_ci==1 & sexo_ci==2 ~ 1, 
                                jefe_ci==1 & sexo_ci==1 ~ 0, 
@@ -151,7 +151,17 @@ if (tipo == "encuestas") {
       techonp_ch = ifelse(techo_ch == 0, 1, NA),
       parednp_ch = ifelse(pared_ch == 0, 1, NA),
       freezer_ch = ifelse(refrig_ch == 1 | freez_ch == 1, 1, NA)
-    ) 
+    ) %>% 
+    group_by(idh_ch) %>%
+    mutate(
+      ytot_ch = sum(ytot_ci, na.rm = TRUE),
+      pc_ytot_ch = ytot_ch / n(),
+      suma1 = cumsum(pc_ytot_ch)
+    ) %>%
+    ungroup() %>%
+    mutate(
+      quintile = cut(suma1, breaks = quantile(suma1, probs = seq(0, 1, by = 0.2), na.rm = TRUE), labels = FALSE)
+    )
   
   # then select only added variables and specific columns
   new_column_names <- setdiff(names(data_soc), initial_column_names)
