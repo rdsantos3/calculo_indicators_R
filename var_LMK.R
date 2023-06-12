@@ -4,7 +4,8 @@
 
 if (tipo == "censos") {
   data_lmk <- data_filt %>% 
-    mutate(pet = ifelse((condocup_ci == 1 | condocup_ci == 2 | condocup_ci == 3),1,0),
+    mutate(_npers = case_when(TRUE,1,0),
+           pet = ifelse((condocup_ci == 1 | condocup_ci == 2 | condocup_ci == 3),1,0),
            pea = ifelse((condocup_ci == 1 | condocup_ci == 2 ),1,0),
            age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, 1, 0), 
            age_25_64_lmk = ifelse(edad_ci>=25 & edad_ci<65, 1, 0), 
@@ -113,6 +114,7 @@ if (tipo == "encuestas") {
 
 data_lmk <- data_filt %>% 
   mutate(#1.1 Poblacion Total, en Edad de Trabajar - PET y economicamente activa PEA:
+    _npers = case_when(TRUE,1,0),
     pet = ifelse((condocup_ci == 1 | condocup_ci == 2 | condocup_ci == 3),1,0),
          pea = ifelse((condocup_ci == 1 | condocup_ci == 2 ),1,0),
          #1.2 Diferente analisis de PET
