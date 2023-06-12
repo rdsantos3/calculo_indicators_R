@@ -329,7 +329,24 @@ data_edu <- data_filt %>%
                                 edusc_ci==1~ 4,
                                 eduui_ci==1~ 5,
                                 eduuc_ci==1~ 6,
-                                TRUE ~NA)) %>% 
-  select(age_25_mas:nivel_ed_1,  region_BID_c, pais_c, ine01, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
+                                TRUE ~NA),
+         # 6 Anios de educacion y grupos de edad
+         age_group_edu = case_when(edad_ci>=4 & edad_ci<=5~ "anos_4_5",
+                                   edad_ci>=6 & edad_ci<=11~ "anos_6_11",
+                                   edad_ci>=12 & edad_ci<=14~ "anos_12_14",
+                                   edad_ci>=15 & edad_ci<=17~ "anos_15_17",
+                                   edad_ci>=18 & edad_ci<=24~ "anos_18_24",
+                                   TRUE ~NA),
+         anos_edu = case_when(aedu_ci==0 & (!is.na(aedu_ci) | !is.na(edad_ci)) & edad_ci >=25 ~ "anos_0",
+                                                                         aedu_ci>=1 & aedu_ci <=5 & (!is.na(aedu_ci) | !is.na(edad_ci)) & edad_ci >=25 ~ "anos_1_5", 
+                                                                         aedu_ci>=6 & aedu_ci <=6 & (!is.na(aedu_ci) | !is.na(edad_ci)) & edad_ci >=25 ~ "anos_6", 
+                                                                         aedu_ci>=7 & aedu_ci <=11 & (!is.na(aedu_ci) | !is.na(edad_ci)) & edad_ci >=25 ~ "anos_7_11", 
+                                                                         aedu_ci>=12 & aedu_ci <=12 & (!is.na(aedu_ci) | !is.na(edad_ci)) & edad_ci >=25 ~ "anos_12",
+                                                                         aedu_ci>=13 & (!is.na(aedu_ci) | !is.na(edad_ci)) & edad_ci >=25 ~ "anos_13_mas"),
+         age_15_24_edu = ifelse(edad_ci>=15 & edad_ci<=24 & !is.na(asiste_ci), 1, 0),
+         age_15_29_edu = ifelse(edad_ci>=15 & edad_ci<=29 & !is.na(asiste_ci), 1, 0),
+         age_18_24_edu = ifelse(edad_ci>=18 & edad_ci<=24 & !is.na(asiste_ci), 1, 0),
+         age_18_23_edu = ifelse(edad_ci>=18 & edad_ci<=23 & !is.na(asiste_ci), 1, 0)) %>% 
+  select(age_25_mas:age_18_23_edu,  region_BID_c, pais_c, ine01, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
          idp_ci) 
 }
