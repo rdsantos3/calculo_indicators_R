@@ -344,7 +344,6 @@ data_edu <- data_filt %>%
                                                                          aedu_ci>=12 & aedu_ci <=12 & (!is.na(aedu_ci) | !is.na(edad_ci)) ~ "anos_12",
                                                                            aedu_ci>=13 & (!is.na(aedu_ci) | !is.na(edad_ci))  ~ "anos_13_mas",
                                                                          TRUE ~NA),
-         anos_edu_6_mas = case_when(),
          age_15_24_edu = ifelse(edad_ci>=15 & edad_ci<=24 & !is.na(asiste_ci), 1, 0),
          age_15_29_edu = ifelse(edad_ci>=15 & edad_ci<=29 & !is.na(asiste_ci), 1, 0),
          age_18_24_edu = ifelse(edad_ci>=18 & edad_ci<=24 & !is.na(asiste_ci), 1, 0),
