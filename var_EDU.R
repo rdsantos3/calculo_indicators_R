@@ -331,7 +331,7 @@ data_edu <- data_filt %>%
                                 eduuc_ci==1~ 6,
                                 TRUE ~NA),
          # 6 Anios de educacion y grupos de edad
-         age_group_edu = case_when(edad_ci>=4 & edad_ci<=5~ "anos_4_5",
+         grupo_etario = case_when(edad_ci>=4 & edad_ci<=5~ "anos_4_5",
                                    edad_ci>=6 & edad_ci<=11~ "anos_6_11",
                                    edad_ci>=12 & edad_ci<=14~ "anos_12_14",
                                    edad_ci>=15 & edad_ci<=17~ "anos_15_17",

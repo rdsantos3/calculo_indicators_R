@@ -391,6 +391,6 @@ data_lmk <- data_filt %>%
                                      condocup_ci==1 & antiguedad_ci<=1~ 0,
                                      TRUE ~ NA_real_)
     ) %>% 
-  select(pet:aux_pensiont_ci, region_BID_c, pais_c, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
+  select(npers:sinrem1yrtenure, region_BID_c, pais_c, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
          idp_ci)
 }
