@@ -10,6 +10,7 @@ library(haven)
 library(srvyr)
 library(readxl)
 library("writexl")
+library(parallel)
 options(scipen = 999)
 
 ### Data ----
@@ -107,7 +108,6 @@ gc()
 
 source("functions.R")
 
-
 ##### Use parallel programming -----
 
 # read the indicators definitions in the csv
@@ -147,9 +147,10 @@ stopCluster(cl)
 
 # disaggregations to remove NA
 # to do add this to the code so that they are removed
-vars_to_check <- c("sex", "disability", "ethnicity", "migration")
+vars_to_check <- c("sex", "disability", "ethnicity", "migration", "area", "quintile")
 
 data_total <- data_total %>%
   purrr::reduce(vars_to_check, function(data, var) {
     data %>% dplyr::filter(!is.na(.data[[var]]))
   }, .init = .)
+
