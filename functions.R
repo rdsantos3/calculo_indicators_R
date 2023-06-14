@@ -42,7 +42,8 @@ scl_pct <- function(.data, .nombre, .condicion1, .condicion2, .group_vars) {
         indicator = .nombre,
         se = sqrt(stats::var(!!.condicion1, na.rm = TRUE)),
         cv = se * 100 / (sum(value * factor_ci) * 100 / sum(factor_ci)),
-        sample = length(na.omit(!!.condicion2))
+        level =  sum(!!.condicion1, na.rm=TRUE),
+        sample = sum(!!.condicion2, na.rm=TRUE)
       ) %>% 
       dplyr::ungroup()
   } else {
@@ -52,7 +53,8 @@ scl_pct <- function(.data, .nombre, .condicion1, .condicion2, .group_vars) {
         indicator = .nombre,
         se = sqrt(stats::var(!!.condicion1, na.rm = TRUE)),
         cv = se * 100 / (sum(value * factor_ci) * 100 / sum(factor_ci)),
-        sample = length(na.omit(!!.condicion2))
+        level =  sum(!!.condicion1, na.rm=TRUE),
+        sample = sum(!!.condicion2, na.rm=TRUE)
       )
   }
   
@@ -66,7 +68,7 @@ scl_pct <- function(.data, .nombre, .condicion1, .condicion2, .group_vars) {
   # Rearrange columns
   data_aux <- data_aux %>% 
     dplyr::select(isoalpha3, year, geolev1, indicator, sex, education_level, disability, quintile, ethnicity, migration, age, area,
-                  value, se, cv, sample)
+                  value, level, se, cv, sample)
   
   return(data_aux)
 }
@@ -89,7 +91,8 @@ scl_mean <- function(.data, .nombre, .mean_var, .condicion, .group_vars) {
         indicator = .nombre,
         se = sqrt(stats::var(!!.mean_var, na.rm = TRUE)),
         cv = se * 100 / mean(!!.mean_var, na.rm=TRUE),
-        sample = length(na.omit(!!.mean_var))
+        level = sum(!!.condicion, na.rm=TRUE),
+        sample = sum(!!.mean_var, na.rm=TRUE)
       ) %>% 
       dplyr::ungroup()
   } else {
@@ -100,7 +103,8 @@ scl_mean <- function(.data, .nombre, .mean_var, .condicion, .group_vars) {
         indicator = .nombre,
         se = sqrt(stats::var(!!.mean_var, na.rm = TRUE)),
         cv = se * 100 / mean(!!.mean_var, na.rm=TRUE),
-        sample = length(na.omit(!!.mean_var))
+        level = sum(!!.condicion, na.rm=TRUE),
+        sample = sum(!!.mean_var, na.rm=TRUE)
       )
   }
   
@@ -114,7 +118,7 @@ scl_mean <- function(.data, .nombre, .mean_var, .condicion, .group_vars) {
   # Rearrange columns
   data_aux <- data_aux %>% 
     dplyr::select(isoalpha3, year, geolev1, indicator, sex, education_level, disability, quintile, ethnicity, migration, age, area,
-                  value, se, cv, sample)
+                  value, level, se, cv, sample)
   
   return(data_aux)
 }
