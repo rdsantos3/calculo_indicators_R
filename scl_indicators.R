@@ -18,6 +18,7 @@ options(scipen = 999)
 # to do make it generalized so that you only have to specity country, type and year.
 # Path of the data
 
+start_time <- Sys.time()
 
 base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2021a_BID.dta"
 
@@ -154,3 +155,8 @@ data_total <- data_total %>%
     data %>% dplyr::filter(!is.na(.data[[var]]))
   }, .init = .)
 
+
+end_time <- Sys.time()
+
+
+end_time - start_time

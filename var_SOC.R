@@ -72,7 +72,6 @@ if (tipo == "encuestas") {
     mutate(jefa_ci = if_else(jefe_ci == 1, as.numeric(sexo_ci == 2), NA_real_),
            ylm_ci = as.double(ylm_ci), 
            ynlm_ci = as.double(ynlm_ci),
-           urbano_ci = as.numeric(zona_c == 1),
            pob_sfd = if_else(sexo_ci == 2 | afroind_ci == 1 | afroind_ci == 2 | dis_ci == 1, 1, 0),
            pob18_ci = as.numeric(edad_ci <= 18),
            pob65_ci = as.numeric(edad_ci >= 65),
