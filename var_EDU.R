@@ -3,26 +3,12 @@
 # 1. Censos 
 
 if (tipo == "censos") {
+  
+  # creating a vector with initial column names
+  initial_column_names <- names(data_filt)
+  
   data_edu <- data_filt %>% 
     mutate(age_25_mas = ifelse(edad_ci>=25, 1, 0),
-           age_4_5 = case_when(edad_ci>=4&edad_ci<=5~ 1,
-                               !is.na(edad_ci)~ 0,
-                               TRUE ~ NA),
-           age_6_11 = case_when(edad_ci>=6&edad_ci<=11~ 1,
-                               !is.na(edad_ci)~ 0,
-                               TRUE ~ NA_real_),
-           age_12_14 = case_when(edad_ci>=12&edad_ci<=14~ 1,
-                                !is.NA_real_(edad_ci)~ 0,
-                                TRUE ~ NA_real_),
-           age_15_17 = case_when(edad_ci>=15&edad_ci<=17~ 1,
-                                 !is.NA_real_(edad_ci)~ 0,
-                                 TRUE ~ NA_real_),
-           age_18_23 = case_when(edad_ci>=18&edad_ci<=23~ 1,
-                                 !is.NA_real_(edad_ci)~ 0,
-                                 TRUE ~ NA_real_),
-           age_18_24 = case_when(edad_ci>=18&edad_ci<=24~ 1,
-                                 !is.NA_real_(edad_ci)~ 0,
-                                 TRUE ~ NA_real_),
            age_prim_c = case_when((pais_c=="COL"| pais_c=="BRA") & (edad_ci>=6 & edad_ci<=10) ~ 1,
                                   (pais_c=="COL"| pais_c=="BRA") ~ 0,
                                   (pais_c=="BRB") & (edad_ci>=5&edad_ci<=10) ~ 1,
@@ -135,15 +121,26 @@ if (tipo == "censos") {
                                 aedu_ci>=13 & (!is.na(aedu_ci) | !is.na(edad_ci)) & edad_ci >=25 ~ "anos_13_mas"),
            age_15_24_edu = ifelse(edad_ci>=15 & edad_ci<=24 & !is.na(asiste_ci), 1, 0),
            age_15_29_edu = ifelse(edad_ci>=15 & edad_ci<=29 & !is.na(asiste_ci), 1, 0),
-           age_18_24_edu = ifelse(edad_ci>=18 & edad_ci<=24 & !is.na(asiste_ci), 1, 0)) %>% 
-    select(age_25_mas, age_edu, asis, asis_neta, grupo_etario, age_15_24_edu, age_15_29_edu, age_18_24_edu, 
-           anos_edu, asiste_ci,  region_BID_c, pais_c, geolev1, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
-           idp_ci) 
+           age_18_24_edu = ifelse(edad_ci>=18 & edad_ci<=24 & !is.na(asiste_ci), 1, 0))
+  
+  
+  # then select only added variables and specific columns
+  new_column_names <- setdiff(names(data_edu), initial_column_names)
+  
+  select_column_names <- c(new_column_names, 
+                           "region_BID_c", "pais_c", "geolev1","estrato_ci", "zona_c", "relacion_ci", 
+                           "idh_ch", "factor_ch", "factor_ci", "idp_ci")
+  
+  data_edu <- select(data_edu, all_of(select_column_names))
+  
 }
 
 # 2. Encuestas
 
 if (tipo == "encuestas") {
+  
+  # creating a vector with initial column names
+  initial_column_names <- names(data_filt)
   
 data_edu <- data_filt %>% 
   mutate(age_25_mas = ifelse(edad_ci>=25, 1, 0),
@@ -347,7 +344,19 @@ data_edu <- data_filt %>%
          age_15_24_edu = ifelse(edad_ci>=15 & edad_ci<=24 & !is.na(asiste_ci), 1, 0),
          age_15_29_edu = ifelse(edad_ci>=15 & edad_ci<=29 & !is.na(asiste_ci), 1, 0),
          age_18_24_edu = ifelse(edad_ci>=18 & edad_ci<=24 & !is.na(asiste_ci), 1, 0),
-         age_18_23_edu = ifelse(edad_ci>=18 & edad_ci<=23 & !is.na(asiste_ci), 1, 0)) %>% 
-  select(age_25_mas:age_18_23_edu,  region_BID_c, pais_c, ine01, estrato_ci, zona_c, relacion_ci, idh_ch, factor_ch, factor_ci, 
-         idp_ci) 
+         age_18_23_edu = ifelse(edad_ci>=18 & edad_ci<=23 & !is.na(asiste_ci), 1, 0)) 
+
+
+
+# then select only added variables and specific columns
+new_column_names <- setdiff(names(data_edu), initial_column_names)
+
+select_column_names <- c(new_column_names, 
+                         "region_BID_c", "pais_c", "ine01","estrato_ci", "zona_c", "relacion_ci", 
+                         "idh_ch", "factor_ch", "factor_ci", "idp_ci")
+
+data_edu <- select(data_edu, all_of(select_column_names))
+
+
+
 }
