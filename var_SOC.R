@@ -91,7 +91,7 @@ if (tipo == "encuestas") {
            miembro65_ch = as.numeric(any(edad_ci >= 65 & relacion_ci > 0 & relacion_ci <= 5)),
            miembro6y16_ch = as.numeric(any(edad_ci >=6 & edad_ci <=16  & relacion_ci > 0 & relacion_ci <= 5)),
            perceptor_ci = if_else(ytot_ci > 0, sum(miembros_ci, na.rm = TRUE), NA_real_),
-           perceptor_ch = max(perceptor_ci, na.rm = TRUE)) %>%
+           perceptor_ch = suppressWarnings(max(perceptor_ci, na.rm = TRUE))) %>%
     ungroup() %>% 
     # Mutate to compute additional variables
     mutate(
