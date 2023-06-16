@@ -130,7 +130,7 @@ if (tipo == "encuestas") {
            miembro65_ch = as.numeric(sum(edad_ci >= 65 & relacion_ci > 0 & relacion_ci <= 5) > 0),
            miembro6y16_ch = as.numeric(sum(edad_ci >=6 & edad_ci <=16  & relacion_ci > 0 & relacion_ci <= 5) > 0),
            perceptor_ci = if_else(ytot_ci > 0, sum(miembros_ci, na.rm = TRUE), NA_real_),
-           perceptor_ch = max(perceptor_ci, na.rm = TRUE)) %>%
+           perceptor_ch = suppressWarnings(max(perceptor_ci, na.rm = TRUE))) %>%
     ungroup() %>% 
     # Mutate to compute additional variables
     mutate(
@@ -172,6 +172,7 @@ if (tipo == "encuestas") {
     ungroup() %>%
     mutate(
       quintile = cut(suma1, breaks = quantile(suma1, probs = seq(0, 1, by = 0.2), na.rm = TRUE), labels = FALSE),
+      quintile = as.character(quintile),
       quintile = case_when(quintile == 1 ~ "quintile_1", 
                            quintile == 2 ~ "quintile_2", 
                            quintile == 3 ~ "quintile_3", 

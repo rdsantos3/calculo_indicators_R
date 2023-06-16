@@ -1,44 +1,38 @@
 # script general para crear indicadores de SCL
 
-##### Ejemplo para calcular indicadores 
-
 ##### Libraries -----
-
-library(tidyverse)
-library(haven)
-library(srvyr)
-library(readxl)
-library(writexl)
-library(parallel)
-library(reldist)
-options(scipen = 999)
-
-### Data ----
-
-# to do make it generalized so that you only have to specity country, type and year.
-# Path of the data
-
-start_time <- Sys.time()
-
-base <- "//sdssrv03//surveys//harmonized//SLV//EHPM//data_arm//SLV_2021a_BID.dta"
-
-# Read data
-data <- read_dta(base)
-
-
-# define type
-tipo <- "encuestas"
-
-if (tipo == "censos") {
-#Keep only needed variables
-variables_censos <- readxl::read_xlsx("Inputs/D.7.1.3 Diccionario variables censos.xlsx")
-
-varlist_censos <- variables_censos %>% 
-    filter(!is.na(Variable))
   
-  data_filt <- data[,varlist_censos$Variable]
-}
+  library(tidyverse)
+  library(haven)
+  library(srvyr)
+  library(readxl)
+  library(parallel)
+  options(scipen = 999)
+  
+  
+  ### Data ----
 
+  start_time <- Sys.time()
+  
+  # code that returns the address of the survey
+  source("directory_periods.R")
+  
+  base <- functionRoundAndSurvey(pais,tipo,anio)
+  
+  # Read data
+  data <- read_dta(base)
+  
+  
+  if (tipo == "censos") {
+    #Keep only needed variables
+    variables_censos <- readxl::read_xlsx("Inputs/D.7.1.3 Diccionario variables censos.xlsx")
+    
+    varlist_censos <- variables_censos %>% 
+      filter(!is.na(Variable))
+    
+    data_filt <- data[,varlist_censos$Variable]
+  }
+  
 if (tipo == "encuestas") {
   # to do si no encuentra las variables ponlas en missing
   
@@ -48,8 +42,12 @@ if (tipo == "encuestas") {
   
   variables_encuestas <- variables_encuestas %>% 
     filter(!is.na(Variable))
+
   
-  data_filt <- data[,variables_encuestas$Variable]
+  # creating empty column for each missing variable in R
+  
+  data_filt <- data[,unique(variables_encuestas$Variable)]
+  
 }
 
 #### Compute intermediate variables  ####
@@ -159,4 +157,3 @@ data_total <- data_total %>%
 end_time <- Sys.time()
 
 
-end_time - start_time
