@@ -28,7 +28,12 @@ if (tipo == "censos") {
                                 is.na(edad_ci) ~ NA_real_, 
                                 TRUE ~ 0),
            single_member = miembros_ci == 1,
-           is_woman = sexo_ci == 2) %>% 
+           age_scl = case_when(edad_ci>=0 & edad_ci<5 ~"00_04",
+                               edad_ci>=0 & edad_ci<5 ~"05_14",
+                               edad_ci>=15 & edad_ci<25 ~"15_24",
+                               edad_ci>=25 & edad_ci<65 ~"25_64",
+                               edad_ci>=65 & edad_ci<99 ~"65+", 
+                               TRUE ~NA_character_)) %>%
     mutate(ytot_ci = pmax(0, rowSums(cbind(ylm_ci, ynlm_ci), na.rm=TRUE)),
            yallsr18 = ifelse(edad_ci>=18, ytot_ci, NA)) %>%
     group_by(anio_c, pais_c, idh_ch) %>%
@@ -105,7 +110,13 @@ if (tipo == "encuestas") {
            pob65_ci = as.numeric(edad_ci >= 65),
            miembros_ci = as.numeric(miembros_ci == 1),
            ytot_ci = pmax(0, rowSums(cbind(ylm_ci, ynlm_ci), na.rm = TRUE)),
-           yallsr18 = if_else(edad_ci >= 18, ytot_ci, NA_real_)) %>%
+           yallsr18 = if_else(edad_ci >= 18, ytot_ci, NA_real_),
+           age_scl = case_when(edad_ci>=0 & edad_ci<5 ~"00_04",
+                               edad_ci>=0 & edad_ci<5 ~"05_14",
+                               edad_ci>=15 & edad_ci<25 ~"15_24",
+                               edad_ci>=25 & edad_ci<65 ~"25_64",
+                               edad_ci>=65 & edad_ci<99 ~"65+", 
+                               TRUE ~NA_character_)) %>%
     group_by(idh_ch) %>%
     mutate(ytot_ch = if_else(miembros_ci == 1, sum(ytot_ci, na.rm = TRUE), NA_real_),
            ytot_ch = pmax(0, ytot_ch),
@@ -156,13 +167,17 @@ if (tipo == "encuestas") {
     ) %>% 
     group_by(idh_ch) %>%
     mutate(
-      ytot_ch = sum(ytot_ci, na.rm = TRUE),
-      pc_ytot_ch = ytot_ch / n(),
       suma1 = cumsum(pc_ytot_ch)
     ) %>%
     ungroup() %>%
     mutate(
-      quintile = cut(suma1, breaks = quantile(suma1, probs = seq(0, 1, by = 0.2), na.rm = TRUE), labels = FALSE)
+      quintile = cut(suma1, breaks = quantile(suma1, probs = seq(0, 1, by = 0.2), na.rm = TRUE), labels = FALSE),
+      quintile = case_when(quintile == 1 ~ "quintile_1", 
+                           quintile == 2 ~ "quintile_2", 
+                           quintile == 3 ~ "quintile_3", 
+                           quintile == 4 ~ "quintile_4", 
+                           quintile == 5 ~ "quintile_5", 
+                           TRUE ~ quintile)
     )
   
   # then select only added variables and specific columns
@@ -172,7 +187,7 @@ if (tipo == "encuestas") {
                            "region_BID_c", "pais_c", "ine01","estrato_ci","area", "zona_c", "relacion_ci", 
                            "idh_ch", "factor_ch", "factor_ci", "idp_ci")
   
-  data_soc <- select(data_soc, all_of(select_column_names))
+  data_soc <- select(data_soc, all_of(select_column_names)) 
   
   
 }

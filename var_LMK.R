@@ -11,9 +11,10 @@ if (tipo == "censos") {
     mutate(npers = ifelse(TRUE,1,0),
            pet = ifelse(edad_ci>=15 & edad_ci<=64,1,0),
            pea = ifelse((condocup_ci == 1 | condocup_ci == 2 ) & pet == 1,1,0),
-           age_lmk = case_when(edad_ci>=15 & edad_ci<25 ~"age_15_24",
-                               edad_ci>=25 & edad_ci<65 ~"age_25_64",
-                               edad_ci>=65 & edad_ci<65 ~"age_65_mas", 
+           # age exclusive
+           age_lmk = case_when(edad_ci>=15 & edad_ci<25 ~"15_24",
+                               edad_ci>=25 & edad_ci<65 ~"25_64",
+                               edad_ci>=65 & edad_ci<99 ~"65+", 
                                TRUE ~NA_character_),
            age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, 1, 0), 
            age_15_29_lmk = ifelse(edad_ci>=15 & edad_ci<30, 1, 0), 
@@ -108,8 +109,7 @@ if (tipo == "censos") {
            ctapropia = case_when(condocup_ci==1 & categopri_ci==2 ~ 1, 
                                  condocup_ci==1 & categopri_ci!=2 ~ 0),
            sinremuner = case_when(condocup_ci==1 & categopri_ci==4 ~ 1, 
-                                  condocup_ci==1 & categopri_ci!=4 ~ 0)
-           ) 
+                                  condocup_ci==1 & categopri_ci!=4 ~ 0))
   
   # then select only added variables and specific columns
   new_column_names <- setdiff(names(data_lmk), initial_column_names)
@@ -135,9 +135,9 @@ data_lmk <- data_filt %>%
          pet = ifelse(edad_ci>=15 & edad_ci<=64,1,0),
          pea = ifelse((condocup_ci == 1 | condocup_ci == 2 ) & pet == 1,1,0),
          # age exclusive
-         age_lmk = case_when(edad_ci>=15 & edad_ci<25 ~"age_15_24",
-                             edad_ci>=25 & edad_ci<65 ~"age_25_64",
-                             edad_ci>=65 & edad_ci<65 ~"age_65_mas", 
+         age_lmk = case_when(edad_ci>=15 & edad_ci<25 ~"15_24",
+                             edad_ci>=25 & edad_ci<65 ~"25_64",
+                             edad_ci>=65 & edad_ci<99 ~"65+", 
                              TRUE ~NA_character_),
          #1.2 Diferente analisis de PET
          age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, 1, 0), 
@@ -328,87 +328,87 @@ data_lmk <- data_filt %>%
          contratofijo = case_when((condocup_ci==1 & tipocontrato_ci==2 & categopri_ci==3)~ 1,
                               (condocup_ci==1 & !is.na(tipocontrato_ci) & categopri_ci==3)~0),
          sincontrato = case_when((condocup_ci==1 & tipocontrato_ci==3 & categopri_ci==3)~ 1,
-                             (condocup_ci==1 & !is.na(tipocontrato_ci) & categopri_ci==3)~0),
-         #1.9 Tasa de desempleo de larga duración
-         durades1_ci = ifelse("durades1_ci" %in% names(.), durades1_ci,NA),
-
-         desemplp_ci = case_when(
-           condocup_ci !=2 ~ NA_real_,
-           durades_ci>=12~ 1,
-           !is.na(durades_ci)~ 0,
-           durades1_ci==5 & pais_c=="ARG" & anio_c>=2003~ 1,
-           condocup_ci==2 & pais_c=="ARG" & anio_c>=2003~ 0,
-           TRUE ~ NA_real_
-         ),
-         aux_n=mean(desemplp_ci),
-         desemplp_ci = ifelse(aux_n==0,NA_real_,desemplp_ci),
-         aux_n=mean(durades_ci),
-         durades_ci = ifelse(aux_n==0,NA_real_,durades_ci),
-         #1.10 Desempleados aspirantes
-         aspirante = case_when(
-           condocup_ci==2 & cesante_ci==0~1,
-           condocup_ci==2 & cesante_ci==1~0,
-           TRUE ~ NA_real_
-         ),
-         #1.11 Anios de educacion
-         aedupea_ci = ifelse(pea==1,aedu_ci,NA_real_),
-         aedupei_ci = ifelse(condocup_ci==3,aedu_ci,NA_real_),
-         #1.12 Formalidad laboral
-         formal_aux = case_when(
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="URY" & anio_c<=2000 ~ 1, 
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="BOL" ~ 1, 
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="CRI" & anio_c<2000 ~1,
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="GTM" & anio_c>1998 ~ 1, 
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="PAN" ~ 1, 
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="PRY" & anio_c<=2006 ~ 1,
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="DOM" ~ 1, 
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="MEX" & anio_c>=2008 ~ 1, 
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="COL" & anio_c<=1999~ 1, 
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="ECU"  ~ 1, 
-                                afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="BHS" ~ 1,
-                                cotizando_ci ==1~1, 
-                                TRUE ~ 0),
-         formal_ci = case_when(formal_aux==1 & (condocup_ci==1 | condocup_ci==2) ~ 1, 
-                               (condocup_ci==1 | condocup_ci==2) ~ 0,
-                               TRUE ~ formal_ci),
-         #1.13 Antiguedad laboral
-         t1yr = case_when(antiguedad_ci<=1 & condocup_ci==1 ~ 1,
-                          antiguedad_ci>1 & condocup_ci==1~ 0,
-                          TRUE ~ NA_real_),
-         t1yrasal = case_when(antiguedad_ci<=1 & condocup_ci==1 & categopri_ci==3 ~ 1,
-                              antiguedad_ci>1 & condocup_ci==1 & categopri_ci==3 ~ 0,
-                              TRUE ~ NA_real_),
-         t1yrctapr = case_when(antiguedad_ci<=1 & condocup_ci==1 & categopri_ci==2~ 1,
-                               antiguedad_ci>1 & condocup_ci==1 & categopri_ci==2~ 0,
-                               TRUE ~ NA_real_),
-         t1a5yr = case_when(antiguedad_ci>1 & antiguedad_ci<5 & condocup_ci==1~ 1,
-                            (antiguedad_ci<=1 | antiguedad_ci>=5) & condocup_ci==1~ 0,
+                                 (condocup_ci==1 & !is.na(tipocontrato_ci) & categopri_ci==3)~0),
+      #1.9 Tasa de desempleo de larga duración
+      durades1_ci = ifelse("durades1_ci" %in% names(.), durades1_ci,NA),
+      
+      desemplp_ci = case_when(
+        condocup_ci !=2 ~ NA_real_,
+        durades_ci>=12~ 1,
+        !is.na(durades_ci)~ 0,
+        durades1_ci==5 & pais_c=="ARG" & anio_c>=2003~ 1,
+        condocup_ci==2 & pais_c=="ARG" & anio_c>=2003~ 0,
+        TRUE ~ NA_real_
+      ),
+      aux_n=mean(desemplp_ci),
+      desemplp_ci = ifelse(aux_n==0,NA_real_,desemplp_ci),
+      aux_n=mean(durades_ci),
+      durades_ci = ifelse(aux_n==0,NA_real_,durades_ci),
+      #1.10 Desempleados aspirantes
+      aspirante = case_when(
+        condocup_ci==2 & cesante_ci==0~1,
+        condocup_ci==2 & cesante_ci==1~0,
+        TRUE ~ NA_real_
+      ),
+      #1.11 Anios de educacion
+      aedupea_ci = ifelse(pea==1,aedu_ci,NA_real_),
+      aedupei_ci = ifelse(condocup_ci==3,aedu_ci,NA_real_),
+      #1.12 Formalidad laboral
+      formal_aux = case_when(
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="URY" & anio_c<=2000 ~ 1, 
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="BOL" ~ 1, 
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="CRI" & anio_c<2000 ~1,
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="GTM" & anio_c>1998 ~ 1, 
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="PAN" ~ 1, 
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="PRY" & anio_c<=2006 ~ 1,
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="DOM" ~ 1, 
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="MEX" & anio_c>=2008 ~ 1, 
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="COL" & anio_c<=1999~ 1, 
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="ECU"  ~ 1, 
+        afiliado_ci==1 & (cotizando_ci!=1 | cotizando_ci!=0) & condocup_ci==1 & pais_c=="BHS" ~ 1,
+        cotizando_ci ==1~1, 
+        TRUE ~ 0),
+      formal_ci = case_when(formal_aux==1 & (condocup_ci==1 | condocup_ci==2) ~ 1, 
+                            (condocup_ci==1 | condocup_ci==2) ~ 0,
+                            TRUE ~ formal_ci),
+      #1.13 Antiguedad laboral
+      t1yr = case_when(antiguedad_ci<=1 & condocup_ci==1 ~ 1,
+                       antiguedad_ci>1 & condocup_ci==1~ 0,
+                       TRUE ~ NA_real_),
+      t1yrasal = case_when(antiguedad_ci<=1 & condocup_ci==1 & categopri_ci==3 ~ 1,
+                           antiguedad_ci>1 & condocup_ci==1 & categopri_ci==3 ~ 0,
+                           TRUE ~ NA_real_),
+      t1yrctapr = case_when(antiguedad_ci<=1 & condocup_ci==1 & categopri_ci==2~ 1,
+                            antiguedad_ci>1 & condocup_ci==1 & categopri_ci==2~ 0,
                             TRUE ~ NA_real_),
-         t1a5yrasal = case_when(antiguedad_ci>1 & antiguedad_ci<5 & condocup_ci==1 & categopri_ci==3~ 1,
-                                (antiguedad_ci<=1 | antiguedad_ci>=5) & condocup_ci==1 & categopri_ci==3~ 0,
-                                TRUE ~ NA_real_),
-         t1a5yrctapr = case_when(antiguedad_ci>1 & antiguedad_ci<5 & condocup_ci==1 & categopri_ci==2~ 1,
-                                 (antiguedad_ci<=1 | antiguedad_ci>=5) & condocup_ci==1 & categopri_ci==2~ 0,
-                                 TRUE ~ NA_real_),
-         t5yr = case_when(antiguedad_ci>=5 & condocup_ci==1~ 1,
-                          antiguedad_ci<5 & condocup_ci==1~ 0,
-                          TRUE ~ NA_real_),
-         t5yrasal = case_when(antiguedad_ci>=5 & condocup_ci==1 & categopri_ci==3~ 1,
-                              antiguedad_ci<5 & condocup_ci==1 & categopri_ci==3~ 0,
+      t1a5yr = case_when(antiguedad_ci>1 & antiguedad_ci<5 & condocup_ci==1~ 1,
+                         (antiguedad_ci<=1 | antiguedad_ci>=5) & condocup_ci==1~ 0,
+                         TRUE ~ NA_real_),
+      t1a5yrasal = case_when(antiguedad_ci>1 & antiguedad_ci<5 & condocup_ci==1 & categopri_ci==3~ 1,
+                             (antiguedad_ci<=1 | antiguedad_ci>=5) & condocup_ci==1 & categopri_ci==3~ 0,
+                             TRUE ~ NA_real_),
+      t1a5yrctapr = case_when(antiguedad_ci>1 & antiguedad_ci<5 & condocup_ci==1 & categopri_ci==2~ 1,
+                              (antiguedad_ci<=1 | antiguedad_ci>=5) & condocup_ci==1 & categopri_ci==2~ 0,
                               TRUE ~ NA_real_),
-         t5yrctapr = case_when(antiguedad_ci>=5 & condocup_ci==1 & categopri_ci==2~ 1,
-                               antiguedad_ci<5 & condocup_ci==1 & categopri_ci==2~ 0,
-                               TRUE ~ NA_real_),
-         asal1yrtenure = case_when(condocup_ci==1 & categopri_ci==3 & antiguedad_ci<=1~ 1,
-                                   condocup_ci==1 & antiguedad_ci<=1~ 0,
-                                   TRUE ~ NA_real_),
-         ctapr1yrtenure = case_when(condocup_ci==1 & categopri_ci==2 & antiguedad_ci<=1~ 1,
-                                    condocup_ci==1 & antiguedad_ci<=1~ 0,
-                                    TRUE ~ NA_real_),
-         patron1yrtenure = case_when(condocup_ci==1 & categopri_ci==1 & antiguedad_ci<=1~ 1,
+      t5yr = case_when(antiguedad_ci>=5 & condocup_ci==1~ 1,
+                       antiguedad_ci<5 & condocup_ci==1~ 0,
+                       TRUE ~ NA_real_),
+      t5yrasal = case_when(antiguedad_ci>=5 & condocup_ci==1 & categopri_ci==3~ 1,
+                           antiguedad_ci<5 & condocup_ci==1 & categopri_ci==3~ 0,
+                           TRUE ~ NA_real_),
+      t5yrctapr = case_when(antiguedad_ci>=5 & condocup_ci==1 & categopri_ci==2~ 1,
+                            antiguedad_ci<5 & condocup_ci==1 & categopri_ci==2~ 0,
+                            TRUE ~ NA_real_),
+      asal1yrtenure = case_when(condocup_ci==1 & categopri_ci==3 & antiguedad_ci<=1~ 1,
+                                condocup_ci==1 & antiguedad_ci<=1~ 0,
+                                TRUE ~ NA_real_),
+      ctapr1yrtenure = case_when(condocup_ci==1 & categopri_ci==2 & antiguedad_ci<=1~ 1,
+                                 condocup_ci==1 & antiguedad_ci<=1~ 0,
+                                 TRUE ~ NA_real_),
+      patron1yrtenure = case_when(condocup_ci==1 & categopri_ci==1 & antiguedad_ci<=1~ 1,
                                      condocup_ci==1 & antiguedad_ci<=1~ 0,
                                      TRUE ~ NA_real_),
-         sinrem1yrtenure = case_when(condocup_ci==1 & categopri_ci==4 & antiguedad_ci<=1~ 1,
+      sinrem1yrtenure = case_when(condocup_ci==1 & categopri_ci==4 & antiguedad_ci<=1~ 1,
                                      condocup_ci==1 & antiguedad_ci<=1~ 0,
                                      TRUE ~ NA_real_)
     ) 
@@ -421,6 +421,5 @@ select_column_names <- c(new_column_names,
                          "idh_ch", "factor_ch", "factor_ci", "idp_ci")
 
 data_lmk <- select(data_lmk, all_of(select_column_names))
-
 
 }

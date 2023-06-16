@@ -34,22 +34,22 @@ if (tipo == "censos") {
 variables_censos <- readxl::read_xlsx("Inputs/D.7.1.3 Diccionario variables censos.xlsx")
 
 varlist_censos <- variables_censos %>% 
-  filter(!is.na(Variable))
-
-data_filt <- data[,varlist_censos$Variable]
+    filter(!is.na(Variable))
+  
+  data_filt <- data[,varlist_censos$Variable]
 }
 
 if (tipo == "encuestas") {
   # to do si no encuentra las variables ponlas en missing
   
-#Keep only needed variables
-variables_encuestas <- readxl::read_xlsx("Inputs/D.1.1.4 Diccionario microdatos encuestas de hogares.xlsx") %>% 
-  filter(!(Variable %in% c("region_ci", "afroind_ano_ci", "atención_ci")))
-
-variables_encuestas <- variables_encuestas %>% 
-  filter(!is.na(Variable))
-
-data_filt <- data[,variables_encuestas$Variable]
+  #Keep only needed variables
+  variables_encuestas <- readxl::read_xlsx("Inputs/D.1.1.4 Diccionario microdatos encuestas de hogares.xlsx") %>% 
+    filter(!(Variable %in% c("region_ci", "afroind_ano_ci", "atención_ci")))
+  
+  variables_encuestas <- variables_encuestas %>% 
+    filter(!is.na(Variable))
+  
+  data_filt <- data[,variables_encuestas$Variable]
 }
 
 #### Compute intermediate variables  ####
@@ -66,25 +66,22 @@ source("var_SOC.R")
 #### Join final data with intermediate variables #####
 
 if (tipo == "censos") {
-
   
-data_scl <- data_filt %>%  
-  select(-c(afroind_ci)) %>% 
-  left_join(data_lmk, by = c("region_BID_c", "pais_c","geolev1",  "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  left_join(data_edu, by = c("region_BID_c", "pais_c", "geolev1", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>%
-  left_join(data_soc, by = c("region_BID_c", "pais_c", "geolev1", "estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  left_join(data_gdi, by = c("region_BID_c", "pais_c", "geolev1","estrato_ci", "zona_c",
-                             "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
-  rename(year = anio_c, isoalpha3 = pais_c)
-
+  data_scl <- data_filt %>%  
+    select(-c(afroind_ci)) %>% 
+    left_join(data_lmk, by = c("region_BID_c", "pais_c","geolev1",  "estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+    left_join(data_edu, by = c("region_BID_c", "pais_c", "geolev1", "estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>%
+    left_join(data_soc, by = c("region_BID_c", "pais_c", "geolev1", "estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+    left_join(data_gdi, by = c("region_BID_c", "pais_c", "geolev1","estrato_ci", "zona_c",
+                               "relacion_ci", "idh_ch", "factor_ch", "idp_ci", "factor_ci")) %>% 
+    rename(year = anio_c, isoalpha3 = pais_c)
+  
 }
 
 if (tipo == "encuestas") {
-
-
   
 data_scl <- data_filt %>%  
   select(-c(afroind_ci)) %>% 
@@ -148,11 +145,14 @@ stopCluster(cl)
 
 # disaggregations to remove NA
 # to do add this to the code so that they are removed
-vars_to_check <- c("sex", "disability", "ethnicity", "migration", "area", "quintile")
+vars_to_check <- c("sex", "disability", "ethnicity", "migration", "area", "quintile", "age", "value")
 
 data_total <- data_total %>%
   purrr::reduce(vars_to_check, function(data, var) {
-    data %>% dplyr::filter(!is.na(.data[[var]]))
+    data %>% 
+      dplyr::filter(!is.na(.data[[var]])) %>% 
+      dplyr::filter(!is.infinite(.data[[var]]))
+      
   }, .init = .)
 
 

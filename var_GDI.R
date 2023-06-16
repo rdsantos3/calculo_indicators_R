@@ -6,8 +6,8 @@ if (tipo == "censos") {
   
   data_gdi <- data_filt %>% 
     mutate(disability =  case_when(dis_ci == 1 ~ "with",
-                                         dis_ci == 2 ~ "without", 
-                                         TRUE ~ NA_character_), 
+                                   dis_ci == 2 ~ "without", 
+                                   TRUE ~ NA_character_), 
            afroind_ci = ifelse(afroind_ci==9 & relacion_ci ==3, afroind_ch, afroind_ci),
            ethnicity = case_when(afroind_ci == 1 ~ "Indi", 
                                  afroind_ci == 2 ~ "Afro",
