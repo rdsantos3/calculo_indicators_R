@@ -13,9 +13,12 @@
   ### Data ----
 
   start_time <- Sys.time()
-  
+
   # code that returns the address of the survey
   source("directory_periods.R")
+  
+  start_time <- Sys.time()
+  
   
   base <- functionRoundAndSurvey(pais,tipo,anio)
   
@@ -42,10 +45,19 @@ if (tipo == "encuestas") {
   
   variables_encuestas <- variables_encuestas %>% 
     filter(!is.na(Variable))
-
+  
+  # Get the names of the variables that need to be in the data
+  required_vars <- unique(variables_encuestas$Variable)
+  
+  # Check which of the required variables are not in the data
+  missing_vars <- setdiff(required_vars, colnames(data))
+  
+  # Add the missing variables to the data with NA values
+  for (var in missing_vars) {
+    data[[var]] <- NA
+  }
   
   # creating empty column for each missing variable in R
-  
   data_filt <- data[,unique(variables_encuestas$Variable)]
   
 }
@@ -107,7 +119,9 @@ source("functions.R")
 ##### Use parallel programming -----
 
 # read the indicators definitions in the csv
-indicator_definitions <- read.csv("Inputs/idef.csv")
+indicator_definitions <- read.csv("Inputs/idef.csv") %>% 
+  # temporal
+  filter(theme == "wash")
 
 num_cores <- detectCores() - 1  # number of cores to use, often set to one less than the total available
 cl <- makeCluster(num_cores)
@@ -154,6 +168,4 @@ data_total <- data_total %>%
   }, .init = .)
 
 
-end_time <- Sys.time()
-
-
+print(paste(pais,anio,end_time <- Sys.time()))
