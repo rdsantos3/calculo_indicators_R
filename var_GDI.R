@@ -5,8 +5,8 @@
 if (tipo == "censos") {
   
   data_gdi <- data_filt %>% 
-    mutate(disability =  case_when(dis_ci == 1 ~ "with",
-                                   dis_ci == 2 ~ "without", 
+    mutate(disability =  case_when(dis_ci == 1 ~ "person_with_disability",
+                                   dis_ci == 0 ~"person_with_no_disability",  
                                    TRUE ~ NA_character_), 
            afroind_ci = ifelse(afroind_ci==9 & relacion_ci ==3, afroind_ch, afroind_ci),
            ethnicity = case_when(afroind_ci == 1 ~ "Indi", 
@@ -42,8 +42,8 @@ if (tipo == "encuestas") {
   initial_column_names <- names(data_filt)
 
 data_gdi <- data_filt %>% 
-  mutate(disability =  case_when(dis_ci == 1 ~ "with",
-                                 dis_ci == 2 ~"without", 
+  mutate(disability =  case_when(dis_ci == 1 ~ "person_with_disability",
+                                 dis_ci == 0 ~"person_with_no_disability", 
                                  TRUE ~ NA_character_), 
          afroind_ci = ifelse(afroind_ci==9 & relacion_ci ==3, afroind_ch, afroind_ci),
          ethnicity = case_when(afroind_ci == 1 ~ "Indi", 
