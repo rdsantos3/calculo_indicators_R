@@ -165,21 +165,16 @@ if (tipo == "encuestas") {
       #demografia dependencia 
       depen_ch = nmiembros_ch / perceptor_ch
     ) %>% 
-    group_by(idh_ch) %>%
+    arrange(pc_ytot_ch) %>%
     mutate(
-      suma1 = cumsum(pc_ytot_ch)
-    ) %>%
-    ungroup() %>%
-    mutate(
-      quintile = cut(suma1, breaks = quantile(suma1, probs = seq(0, 1, by = 0.2), na.rm = TRUE), labels = FALSE),
-      quintile = as.character(quintile),
-      quintile = case_when(quintile == 1 ~ "quintile_1", 
-                           quintile == 2 ~ "quintile_2", 
-                           quintile == 3 ~ "quintile_3", 
-                           quintile == 4 ~ "quintile_4", 
-                           quintile == 5 ~ "quintile_5", 
-                           TRUE ~ quintile)
-    )
+      quintile = cut(pc_ytot_ch, 
+                     breaks = quantile(pc_ytot_ch, 
+                                       probs = seq(0, 1, by = 0.2), 
+                                       na.rm = TRUE, 
+                                       names = FALSE),
+                     labels = c("quintile_1", "quintile_2", "quintile_3", "quintile_4", "quintile_5"))
+          
+      )
   
   # then select only added variables and specific columns
   new_column_names <- setdiff(names(data_soc), initial_column_names)
