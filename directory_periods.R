@@ -1,8 +1,8 @@
 
-
 # Function that returns the address of the survey based on country, type and period
 
-functionRoundAndSurvey <- function(pais, tipo, period) {
+
+functionRoundAndSurvey <- function(pais, tipo, anio) {
 
 
 if (tipo == "encuestas") {
@@ -24,14 +24,14 @@ planificacionSurveysPivot <- planificacionSurveys %>%
 
 # choosing round depending on that information
 round <- planificacionSurveysPivot %>% 
-         filter(`País`== pais,`year`== period) %>% 
+         filter(`País`== pais & `year`== anio & availability ==1) %>% 
          pull(`Ronda armonizada BID`)
 
 survey <- planificacionSurveysPivot %>% 
-          filter(`País`== pais,`year`== period) %>% 
+          filter(`País`== pais & `year`== anio & availability ==1) %>% 
           pull(Encuesta)
 
-base <- paste("//sdssrv03//surveys//harmonized//",pais,"//",survey,"//data_arm//",pais,"_",period,round,"_BID.dta",sep = "")
+base <- paste("//sdssrv03//surveys//harmonized//",pais,"//",survey,"//data_arm//",pais,"_",anio,round,"_BID.dta",sep = "")
 # return database address
 return(base)
 
