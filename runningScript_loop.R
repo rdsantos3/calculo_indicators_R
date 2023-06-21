@@ -1,29 +1,28 @@
-pais <- c("BRA", "COL", "CRI", "DOM", "ECU")
-anio <- c("2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020")
-tipo <- "encuestas"
+# Read your csv file
+available_years <- read.csv("Inputs/running_survey.csv") %>% 
+  filter(availability==1) 
 
-# Loop over each country
-for (country in pais) {
-  # Loop over each year
-  for (year in anio) {
-    # Loop over each type
- 
-      # Set variables
-      pais <- country
-      anio <- year
-      tipo <- tipo
-      
-      # Source script
-      source("scl_indicators.R")
-      
-      # Write output
-      if (tipo == "encuestas") {
-        write.csv(data_total, paste("Outputs/indicadores_encuestas_hogares_wash_", pais, "_", anio, ".csv", sep = ""), row.names = FALSE)
-      }
-      
-      # Add more conditions for other types if needed
-      if (tipo == "censos") {
-        # do something
-      }
-    }
+# Get unique combinations of country and year
+unique_combinations <- unique(available_years[c("Pais", "year")])
+
+# Loop over each unique row in unique_combinations
+for (i in 1:nrow(unique_combinations)) {
+  
+  # Get country and year from the current row
+  pais <- unique_combinations[[i, "Pais"]]
+  anio <- unique_combinations[[i, "year"]]
+  tipo <- "encuestas"
+  
+  # Source script
+  source("scl_indicators.R")
+  
+  # Write output
+  if (tipo == "encuestas") {
+    write.csv(data_total, paste("Outputs/indicadores_encuestas_hogares_", pais, "_", anio, ".csv", sep = ""), row.names = FALSE)
+  }
+  
+  # Add more conditions for other types if needed
+  if (tipo == "censos") {
+    # do something
+  }
 }
