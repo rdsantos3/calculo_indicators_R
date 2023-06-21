@@ -44,7 +44,6 @@ if (tipo == "censos") {
            ywomen = sum(yallsr18[sexo_ci == 2], na.rm = TRUE),
            hhywomen = max(ywomen, na.rm = TRUE),
            jefa_ch = ifelse(jefe_ci==1, sum(jefa_ci),0)) %>%
-    ungroup() %>%
     ungroup() %>% 
     # Mutate to compute additional variables
     mutate(

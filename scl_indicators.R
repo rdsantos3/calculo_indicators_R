@@ -24,7 +24,7 @@
   
   # Read data
   data <- read_dta(base)
-  
+ 
   
   if (tipo == "censos") {
     #Keep only needed variables
@@ -119,9 +119,8 @@ source("functions.R")
 ##### Use parallel programming -----
 
 # read the indicators definitions in the csv
-indicator_definitions <- read.csv("Inputs/idef.csv") %>% 
-  # temporal
-  filter(theme == "wash")
+indicator_definitions <- read.csv("Inputs/idef.csv") 
+# if needed you can filter here by theme
 
 num_cores <- detectCores() - 1  # number of cores to use, often set to one less than the total available
 cl <- makeCluster(num_cores)
