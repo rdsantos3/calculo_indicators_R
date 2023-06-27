@@ -18,8 +18,8 @@ if (tipo == "censos") {
                                edad_ci>=25 & edad_ci<65 ~"25_64",
                                edad_ci>=65 & edad_ci<99 ~"65+", 
                                TRUE ~NA_character_),
-           age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, 1, 0), 
-           age_15_29_lmk = ifelse(edad_ci>=15 & edad_ci<30, 1, 0), 
+           age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, "15_65", NA_real_), 
+           age_15_29_lmk = ifelse(edad_ci>=15 & edad_ci<30, "15_29", NA_real_), 
            patron = case_when(condocup_ci==1 & categopri_ci==1 ~ 1, 
                               condocup_ci==1 & categopri_ci!=1 ~ 0),
            asalariado = case_when(condocup_ci==1 & categopri_ci==3 ~ 1, 
@@ -144,8 +144,8 @@ if (tipo == "encuestas") {
                           edad_ci>=65 & edad_ci<120 ~"65+", 
                           TRUE ~NA_character_),
       #1.2 Diferente analisis de PET
-      age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, 1, 0), 
-      age_15_29_lmk = ifelse(edad_ci>=15 & edad_ci<30, 1, 0), 
+      age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, "15_65", NA_real_), 
+      age_15_29_lmk = ifelse(edad_ci>=15 & edad_ci<30, "15_29", NA_real_), 
       #1.3 Personas con más de un empleo
       otraocup_ci = case_when(nempleos_ci >= 2 ~1,
                               nempleos_ci==1~0,
