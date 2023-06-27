@@ -374,7 +374,7 @@ if (tipo == "encuestas") {
         TRUE ~ 0),
       formal_ci = case_when(formal_aux==1 & (condocup_ci==1 | condocup_ci==2) ~ 1, 
                             (condocup_ci==1 | condocup_ci==2) ~ 0,
-                            TRUE ~ formal_ci),
+                            TRUE ~ NA_real_),
       #1.13 Antiguedad laboral
       t1yr = case_when(antiguedad_ci<=1 & condocup_ci==1 ~ 1,
                        antiguedad_ci>1 & condocup_ci==1 ~ 0,
