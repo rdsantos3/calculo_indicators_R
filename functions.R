@@ -68,6 +68,14 @@ scl_pct <- function(.data, .nombre, .condicion1, .condicion2, .group_vars) {
     data_aux <- data_aux %>% rename(age = age_scl)
   }
   
+  if('age_15_64_lmk' %in% .group_vars){
+    data_aux <- data_aux %>% rename(age = age_15_64_lmk)
+  }
+  
+  if('age_15_29_lmk' %in% .group_vars){
+    data_aux <- data_aux %>% rename(age = age_15_29_lmk)
+  }
+  
   # Add disaggregation columns if not already present
   for (disaggregation_col in c("sex", "education_level", "disability", "quintile", "ethnicity", "migration", "age", "area", "year", "isoalpha3", "geolev1")) {
     if (!(disaggregation_col %in% colnames(data_aux))) {
@@ -125,6 +133,14 @@ scl_mean <- function(.data, .nombre, .mean_var, .condicion, .group_vars) {
   
   if('age_scl' %in% .group_vars){
     data_aux <- data_aux %>% rename(age = age_scl)
+  }
+  
+  if('age_15_64_lmk' %in% .group_vars){
+    data_aux <- data_aux %>% rename(age = age_15_64_lmk)
+  }
+  
+  if('age_15_29_lmk' %in% .group_vars){
+    data_aux <- data_aux %>% rename(age = age_15_29_lmk)
   }
   
   # Add disaggregation columns if not already present

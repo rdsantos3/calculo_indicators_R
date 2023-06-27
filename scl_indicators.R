@@ -166,5 +166,9 @@ data_total <- data_total %>%
       
   }, .init = .)
 
+# showing NA as NA instead of zeros
+
+data_total <- data_total %>%
+  filter(!(is.na(cv) & value==0 & level==0 & se==0))
 
 print(paste(pais,anio,end_time <- Sys.time()))
