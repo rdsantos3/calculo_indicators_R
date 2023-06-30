@@ -1,14 +1,4 @@
 # script general para crear indicadores de SCL
-
-##### Libraries -----
-  
-  library(tidyverse)
-  library(haven)
-  library(srvyr)
-  library(readxl)
-  library(parallel)
-  options(scipen = 999)
-  
   
   ### Data ----
 
@@ -16,9 +6,6 @@
 
   # code that returns the address of the survey
   source("directory_periods.R")
-  
-  start_time <- Sys.time()
-  
   
   base <- functionRoundAndSurvey(pais,tipo,anio)
   
@@ -121,6 +108,7 @@ source("functions.R")
 # read the indicators definitions in the csv
 indicator_definitions <- read.csv("Inputs/idef.csv") 
 # if needed you can filter here by theme
+# %>% filter(theme == "wash")
 
 num_cores <- detectCores() - 1  # number of cores to use, often set to one less than the total available
 cl <- makeCluster(num_cores)
@@ -171,4 +159,8 @@ data_total <- data_total %>%
 data_total <- data_total %>%
   filter(!(is.na(cv) & value==0 & level==0 & se==0))
 
-print(paste(pais,anio,end_time <- Sys.time()))
+# Now calculate the difference
+time_difference <- difftime(end_time, start_time, units = "mins")
+
+print(paste(pais,anio, time_difference, "minutes"))
+
