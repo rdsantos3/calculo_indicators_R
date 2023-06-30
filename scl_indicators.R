@@ -108,6 +108,7 @@ source("functions.R")
 # read the indicators definitions in the csv
 indicator_definitions <- read.csv("Inputs/idef.csv") 
 # if needed you can filter here by theme
+# %>% filter(theme == "wash")
 
 num_cores <- detectCores() - 1  # number of cores to use, often set to one less than the total available
 cl <- makeCluster(num_cores)

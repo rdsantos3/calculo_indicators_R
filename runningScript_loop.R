@@ -8,7 +8,7 @@ library(parallel)
 options(scipen = 999)
 
 available_years <- read.csv("Inputs/running_survey.csv") %>% 
-  filter(availability==1) 
+  filter(availability==1)
 # if needed you can run by chunks of countries here
 
 # Get unique combinations of country and year
