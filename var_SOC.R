@@ -163,7 +163,10 @@ if (tipo == "encuestas") {
       hacinamiento_ch = nmiembros_ch / cuartos_ch,
       #demografia dependencia 
       depen_ch = nmiembros_ch / perceptor_ch
-    ) %>% 
+    ) 
+  # creating an if to see if pc_ytot_ch has a value%>% 
+  if (length(unique(data_soc$pc_ytot_ch))>5){ 
+  data_soc <- data_soc %>%
     arrange(pc_ytot_ch) %>%
     mutate(
       quintile = cut(pc_ytot_ch, 
@@ -172,8 +175,10 @@ if (tipo == "encuestas") {
                                        na.rm = TRUE, 
                                        names = FALSE),
                      labels = c("quintile_1", "quintile_2", "quintile_3", "quintile_4", "quintile_5"))
-          
       )
+  } else{
+    data_soc <- data_soc %>% mutate(quintile = NA_character_)
+  }
   
   # then select only added variables and specific columns
   new_column_names <- setdiff(names(data_soc), initial_column_names)
