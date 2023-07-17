@@ -43,7 +43,13 @@ if (tipo == "censos") {
            hhyallsr = pmax(0, hhyallsr),
            ywomen = sum(yallsr18[sexo_ci == 2], na.rm = TRUE),
            hhywomen = max(ywomen, na.rm = TRUE),
-           jefa_ch = ifelse(jefe_ci==1, sum(jefa_ci),0)) %>%
+           jefa_ch = ifelse(jefe_ci==1, sum(jefa_ci),0),
+           miembro6_ch = as.numeric(sum(edad_ci < 6 & relacion_ci > 0 & relacion_ci <= 5) > 0),
+           miembro65_ch = as.numeric(sum(edad_ci >= 65 & relacion_ci > 0 & relacion_ci <= 5) > 0),
+           miembro6y16_ch = as.numeric(sum(edad_ci >=6 & edad_ci <=16  & relacion_ci > 0 & relacion_ci <= 5) > 0),
+           shareylmfem_ch = hhywomen / hhyallsr,
+           perceptor_ci = if_else(ytot_ci > 0, sum(miembros_ci, na.rm = TRUE), NA_real_),
+           perceptor_ch = suppressWarnings(max(perceptor_ci, na.rm = TRUE))) %>%
     ungroup() %>% 
     # Mutate to compute additional variables
     mutate(
@@ -71,19 +77,34 @@ if (tipo == "censos") {
       # Calculate hhfem_ch
       hhfem_ch = ifelse(hhywomen >= .5, 1, ifelse(is.na(yallsr18), NA, 0)),
       # remesas
-      indexrem = ifelse(jefe_ci == 1 & !is.na(remesas_ch) & remesas_ch > 0, 1, NA),
-      ylmprixh = ylmpri_ci / (horaspri_ci * 4.34),
+      #indexrem = ifelse(jefe_ci == 1 & !is.na(remesas_ch) & remesas_ch > 0, 1, NA),
+      #ylmprixh = ylmpri_ci / (horaspri_ci * 4.34),
       #vivienda 
       hacinamiento_ch = nmiembros_ch / cuartos_ch,
       #demografia dependencia 
       depen_ch = nmiembros_ch / perceptor_ch
     )
-  
+
+  # creating an if to see if pc_ytot_ch has a value%>% 
+  if (length(unique(data_soc$pc_ytot_ch))>5){ 
+    data_soc <- data_soc %>%
+      arrange(pc_ytot_ch) %>%
+      mutate(
+        quintile = cut(pc_ytot_ch, 
+                       breaks = quantile(pc_ytot_ch, 
+                                         probs = seq(0, 1, by = 0.2), 
+                                         na.rm = TRUE, 
+                                         names = FALSE),
+                       labels = c("quintile_1", "quintile_2", "quintile_3", "quintile_4", "quintile_5"))
+      )
+  } else{
+    data_soc <- data_soc %>% mutate(quintile = NA_character_)
+  }    
   # then select only added variables and specific columns
   new_column_names <- setdiff(names(data_soc), initial_column_names)
   
   select_column_names <- c(new_column_names, 
-                           "region_BID_c", "pais_c", "ine01","estrato_ci","area", "zona_c", "relacion_ci", 
+                           "region_BID_c", "pais_c", "geolev1","estrato_ci","area", "zona_c", "relacion_ci", 
                            "idh_ch", "factor_ch", "factor_ci", "idp_ci")
   
   data_soc <- select(data_soc, all_of(select_column_names))

@@ -55,7 +55,7 @@ if (tipo == "censos") {
              pais_c=="TTO"~ 4.619226
            ),
            #1.3 Salarios
-           ylm_ci = ifelse(is.na(ylmpri_ci),NA_real_,ylm_ci),
+           #ylm_ci = ifelse(is.na(ylmpri_ci),NA_real_,ylm_ci),
            ylab_ci = ifelse(pea==1 & emp_ci==1,ylm_ci,NA_real_),
            #1.4 Categorías de rama de actividad
            agro = case_when(
@@ -111,13 +111,14 @@ if (tipo == "censos") {
            ctapropia = case_when(condocup_ci==1 & categopri_ci==2 ~ 1, 
                                  condocup_ci==1 & categopri_ci!=2 ~ 0),
            sinremuner = case_when(condocup_ci==1 & categopri_ci==4 ~ 1, 
-                                  condocup_ci==1 & categopri_ci!=4 ~ 0))
+                                  condocup_ci==1 & categopri_ci!=4 ~ 0)
+           )
   
   # then select only added variables and specific columns
   new_column_names <- setdiff(names(data_lmk), initial_column_names)
   
   select_column_names <- c(new_column_names, 
-                           "region_BID_c", "pais_c", "ine01","geolev1","estrato_ci", "zona_c", "relacion_ci", 
+                           "region_BID_c", "pais_c","geolev1","estrato_ci", "zona_c", "relacion_ci", 
                            "idh_ch", "factor_ch", "factor_ci", "idp_ci")
   
   data_lmk <- select(data_lmk, all_of(select_column_names))
