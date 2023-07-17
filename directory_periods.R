@@ -40,5 +40,22 @@ return(base)
 
 if (tipo == "censos"){
  ##### to be done
+  # if (pais=="SLV" & anio=="2007"){
+  #   base <- direccionCensos
+  #   # return database address
+  #   return(base)
+  #   
+  # }
+  # if (pais=="ARG" & anio=="2010"){
+  #   base <- direccionCensos
+  #   # return database address
+  #   return(base)
+  #   
+    
+    
+  #}
+  #temporal - hacer generalizable
+base <- paste("C:/Users/MARIAREY/OneDrive - Inter-American Development Bank Group/Documents/Data Governance - SCL/Censos/clean/",pais,"/", pais,"_",anio, "_censusBID.dta",sep = "")  
+  
 }
 }

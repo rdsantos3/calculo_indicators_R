@@ -19,8 +19,20 @@
     
     varlist_censos <- variables_censos %>% 
       filter(!is.na(Variable))
+
+    # Get the names of the variables that need to be in the data
+    required_vars <- unique(varlist_censos$Variable)
     
+    # Check which of the required variables are not in the data
+    missing_vars <- setdiff(required_vars, colnames(data))
+    
+    # Add the missing variables to the data with NA values
+    for (var in missing_vars) {
+      data[[var]] <- NA
+    }    
+        
     data_filt <- data[,varlist_censos$Variable]
+    
   }
   
 if (tipo == "encuestas") {
@@ -110,6 +122,16 @@ indicator_definitions <- read.csv("Inputs/idef.csv")
 # if needed you can filter here by theme
 
 
+if (tipo=="censos"){
+  indicator_definitions <- indicator_definitions %>% filter(includedInCensus==1)
+  
+  ### adding disagregation
+  if (geoLevel == "geolev1"){
+    ### adding to disagregation column, geolevel1
+    indicator_definitions$disaggregation <- sub(",isoalpha3", ",geolev1,isoalpha3", indicator_definitions$disaggregation)
+  }
+}
+
 num_cores <- detectCores() - 1  # number of cores to use, often set to one less than the total available
 cl <- makeCluster(num_cores)
 
@@ -158,6 +180,12 @@ data_total <- data_total %>%
 
 data_total <- data_total %>%
   filter(!(is.na(cv) & value==0 & level==0 & se==0))
+
+# if census then add to the name of the results
+if (tipo=="censos"){
+data_total$indicator <- lapply(data_total$indicator, function(x) paste(x,'_PHC'))
+data_total <- apply(data_total,2,as.character)
+}
 
 # Now calculate the difference
 time_difference <- difftime(end_time, start_time, units = "mins")
