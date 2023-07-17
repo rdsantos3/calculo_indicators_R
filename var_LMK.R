@@ -18,7 +18,7 @@ if (tipo == "censos") {
                                edad_ci>=25 & edad_ci<65 ~"25_64",
                                edad_ci>=65 & edad_ci<99 ~"65+", 
                                TRUE ~NA_character_),
-           age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, "15_65", NA_real_), 
+           age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, "15_64", NA_real_), 
            age_15_29_lmk = ifelse(edad_ci>=15 & edad_ci<30, "15_29", NA_real_), 
            patron = case_when(condocup_ci==1 & categopri_ci==1 ~ 1, 
                               condocup_ci==1 & categopri_ci!=1 ~ 0),
@@ -200,9 +200,9 @@ if (tipo == "encuestas") {
       #1.6.3 Ingreso horario en la actividad principal USD
       hwage_ci = ifelse(condocup_ci==1,ylmpri_ci/(horaspri_ci*4.3),NA_real_),
       hwage_ppp=hwage_ci/ppp/ipc_c,
-      #1.6.4 Ingreso por pensión contributiva
+      #1.6.4 Ingreso por pensión contributiva USD
       ypen_ppp=ypen_ci/ppp/ipc_c,
-      #1.6.5 Salario mínimo mensual y horario - PPP
+      #1.6.5 Salario mínimo mensual y horario - USD PPP
       salmm_ppp=salmm_ci/ppp/ipc_c,
       hsmin_ci=salmm_ci/(5*8*4.3),
       hsmin_ppp=salmm_ppp/(5*8*4.3),
@@ -354,7 +354,7 @@ if (tipo == "encuestas") {
         condocup_ci==2 & cesante_ci==1 ~ 0,
         TRUE ~ NA_real_
       ),
-      #1.11 Anios de educacion
+      #1.11 Anios de educacion de la poblacion activa e inactiva
       aedupea_ci = ifelse(pea==1,aedu_ci,NA_real_),
       aedupei_ci = ifelse(condocup_ci==3,aedu_ci,NA_real_),
       #1.12 Formalidad laboral
