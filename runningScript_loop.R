@@ -1,5 +1,4 @@
 
-setwd("C:/Users/linaa/OneDrive - Inter-American Development Bank Group/Documents/GitHub/calculo_indicators_R")
 # Read your csv file
 
 library(tidyverse)
@@ -10,9 +9,7 @@ library(parallel)
 options(scipen = 999)
 
 available_years <- read.csv("Inputs/running_survey.csv") %>% 
-  filter(availability==1) %>%
-  filter(year %in% c("2021")) %>%
-  filter(Pais %in% c( "GUY"))
+  filter(availability==1)
 
 # if needed you can run by chunks of countries here
 #"ARG",   "CHL", "BLZ", "BRA", "COL", "CRI", "ECU", "GUY", "HTI",  "PAN", "PRY", "SUR", "URY"
