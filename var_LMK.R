@@ -144,7 +144,7 @@ if (tipo == "encuestas") {
                           edad_ci>=65 & edad_ci<120 ~"65+", 
                           TRUE ~NA_character_),
       #1.2 Diferente analisis de PET
-      age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, "15_65", NA_real_), 
+      age_15_64_lmk = ifelse(edad_ci>=15 & edad_ci<65, "15_64", NA_real_), 
       age_15_29_lmk = ifelse(edad_ci>=15 & edad_ci<30, "15_29", NA_real_), 
       #1.3 Personas con más de un empleo
       otraocup_ci = case_when(nempleos_ci >= 2 ~1,
