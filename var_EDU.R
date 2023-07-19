@@ -11,6 +11,7 @@ if (tipo == "censos") {
     mutate(age_25_mas = ifelse(edad_ci>=25, 1, 0),
            #2. Ninis
            nini = ifelse(asiste_ci==0 & condocup_ci==3,1,0),
+           nini = ifelse(is.na(asiste_ci) | is.na(condocup_ci),NA,nini),
            age_prim_c = case_when((pais_c=="COL"| pais_c=="BRA") & (edad_ci>=6 & edad_ci<=10) ~ 1,
                                   (pais_c=="COL"| pais_c=="BRA") ~ 0,
                                   (pais_c=="BRB") & (edad_ci>=5&edad_ci<=10) ~ 1,
@@ -214,6 +215,7 @@ if (tipo == "encuestas") {
     mutate(age_25_mas = ifelse(edad_ci>=25, 1, 0),
            #2. Ninis
            nini = ifelse(asiste_ci==0 & condocup_ci==3,1,0),
+           nini = ifelse(is.na(asiste_ci) | is.na(condocup_ci),NA,nini),
            #3. Edad teórica y asistencia
            #3.1 Primaria por grupo de países
            age_prim_c = case_when((pais_c=="COL"|pais_c=="BRA") & (edad_ci>=6 & edad_ci<=10) & !is.na(aedu_ci) ~ 1,
@@ -232,7 +234,7 @@ if (tipo == "encuestas") {
                                        (pais_c=="TTO") & (aedu_ci>=0 & aedu_ci<7) & (asiste_ci==1 & age_prim_c==1)~ 1,
                                        (pais_c=="TTO") & age_prim_c==1 & !(aedu_ci>=0 & aedu_ci<7 & asiste_ci==1)~ 0,
                                        (aedu_ci>=0 & aedu_ci<6)   & asiste_ci==1 & age_prim_c==1 ~ 1,
-                                       age_prim_c==1 & !((aedu_ci>=0 & aedu_ci<6)   & asiste_ci==1)~ 0,
+                                       age_prim_c==1 & (!(aedu_ci>=0 & aedu_ci<6)   | !asiste_ci==1)~ 0,
                                        TRUE ~ NA_real_),
            asis_prim_c = case_when((pais_c=="COL"|pais_c=="BRA") & (aedu_ci>=0 & aedu_ci<5) & (asiste_ci==1 & edad_ci>=6)~ 1,
                                    (pais_c=="COL"|pais_c=="BRA") & edad_ci>=6 & is.na(asis_net_prim_c)~ 0,
@@ -244,7 +246,8 @@ if (tipo == "encuestas") {
                                    edad_ci>=6 & !((aedu_ci>=0 & aedu_ci<6)   & asiste_ci==1 & edad_ci>=6) &  !is.na(aedu_ci) ~ 0,
                                    TRUE ~ NA_real_),
            #3.1.2 Sobreedad
-           age_prim_sobre = case_when((pais_c=="BRB") &(asiste_ci==1 & aedu_ci==0 & edad_ci>=7)~ 1,
+           age_prim_sobre = case_when( edad_ci<6 | is.na(aedu_ci) ~ NA_real_,
+                                      (pais_c=="BRB") &(asiste_ci==1 & aedu_ci==0 & edad_ci>=7)~ 1,
                                       (pais_c=="BRB") &(asiste_ci==1 & aedu_ci==1 & edad_ci>=8)~ 1,
                                       (pais_c=="BRB") &(asiste_ci==1 & aedu_ci==2 & edad_ci>=9)~ 1,
                                       (pais_c=="BRB") &(asiste_ci==1 & aedu_ci==3 & edad_ci>=10)~ 1,
@@ -275,18 +278,18 @@ if (tipo == "encuestas") {
                                       (asiste_ci==1 & aedu_ci==3 & edad_ci>=11)~ 1,
                                       (asiste_ci==1 & aedu_ci==4 & edad_ci>=12)~ 1,
                                       (asiste_ci==1 & aedu_ci==5 & edad_ci>=13)~ 1,                                    
-                                      !(asiste_ci==1 & aedu_ci==0 & edad_ci>=8 & asispre_ci!= 1)~ 0,
-                                      edad_ci<6 | is.na(aedu_ci) ~ NA_real_),
+                                      !(asiste_ci==1 & aedu_ci==0 & edad_ci>=8 & asispre_ci!= 1)~ 0),
            #3.1.3 Terminación
-           age_term_p_c = case_when((pais_c=="COL"|pais_c=="BRA"|pais_c=="BRB")&(edad_ci>=13&edad_ci<=15)~ 1,
+           age_term_p_c = case_when( is.na(edupc_ci)~NA_real_,
+                                    (pais_c=="COL"|pais_c=="BRA"|pais_c=="BRB")&(edad_ci>=13&edad_ci<=15)~ 1,
                                     (pais_c=="COL"|pais_c=="BRA"|pais_c=="BRB")&!(edad_ci>=13&edad_ci<=15)~ 0,
                                     (pais_c=="COL"|pais_c=="BRA"|pais_c=="BRB") & is.na(edupc_ci)~NA_real_,
                                     pais_c=="TTO" & (edad_ci>=15&edad_ci<=17)~ 1,
                                     pais_c=="TTO" & !(edad_ci>=15&edad_ci<=17)~ 0,
                                     pais_c=="TTO" &is.na(edupc_ci)~NA_real_,
                                     (edad_ci>=14&edad_ci<=16)~ 1,
-                                    !(edad_ci>=14&edad_ci<=16)~ 0,
-                                    is.na(edupc_ci)~NA_real_
+                                    !(edad_ci>=14&edad_ci<=16)~ 0
+                                    
            ),
            #3.2 Secundaria por grupo de pasises
            #3.2.1 Edad teórica y asistencia
@@ -380,9 +383,13 @@ if (tipo == "encuestas") {
            
            # 4 leavers
            leavers = ifelse((edupi_ci==1 | edupc_ci==1 | edus1i_ci==1 | edus1c_ci==1) & (asiste_ci == 0),1,0),
+           leavers = ifelse(is.na(edupc_ci),NA,leavers),
            tprimaria = ifelse((edupc_ci ==1 | edusi_ci==1 | edusc_ci==1 | eduui_ci==1 | eduuc_ci==1),1,0),
+           tprimaria = ifelse(is.na(edupc_ci),NA,tprimaria),
            tsecundaria  = ifelse((edusc_ci ==1 | eduui_ci==1 | eduuc_ci==1),1,0),
+           tsecundaria = ifelse(is.na(edupc_ci),NA,tsecundaria),
            tsuperior = ifelse((eduuc_ci ==1),1,0),
+           tsuperior = ifelse(is.na(edupc_ci),NA,tsuperior),
            t_cond_primaria   = ifelse((tprimaria==1   & age_term_p_c==1),1,0),
            t_cond_secundaria = ifelse((tsecundaria==1 & age_term_s_c==1),1,0),
            # 5 Desagregación por niveles
@@ -403,7 +410,7 @@ if (tipo == "encuestas") {
                                     edad_ci>=6 & edad_ci<=11~ "age_6_11",
                                     edad_ci>=12 & edad_ci<=14~ "age_12_14",
                                     edad_ci>=15 & edad_ci<=17~ "age_15_17",
-                                    edad_ci>=18 & edad_ci<=24~ "age_18_24",
+                                    edad_ci>=18 & edad_ci<=23~ "age_18_23",
                                     TRUE ~NA_character_),
            anos_edu = case_when(aedu_ci==0 & (!is.na(aedu_ci) | !is.na(edad_ci))  ~ "anos_0",
                                 aedu_ci>=1 & aedu_ci <=5 & (!is.na(aedu_ci) | !is.na(edad_ci)) ~ "anos_1_5", 
